@@ -3,3 +3,9 @@ code/intro/mem
 code/intro/threads.v0
 code/intro/threads.v1
 code/intro/cpu
+*.dSYM
+p1
+p2
+p3
+p4
+p4.output
