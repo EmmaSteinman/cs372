@@ -50,11 +50,11 @@ Next, `main()` calls `read_command_line()` to break the kernel command line into
 
 `thread_init()` initializes the thread system. We will defer full discussion to our discussion of Pintos threads below. It is called so early in initialization because a valid thread structure is a prerequisite for acquiring a lock, and lock acquisition in turn is important to other Pintos subsystems. Then we initialize the console and print a startup message to the console.
 
-The next block of functions we call initializes the kernel's memory system. `palloc_init()` sets up the kernel page allocator, which doles out memory one or more pages at a time (see section [A.5.1 Page Allocator](pintos_7.md)). `malloc_init()` sets up the allocator that handles allocations of arbitrary-size blocks of memory (see section [A.5.2 Block Allocator](pintos_7.html#SEC123)). `paging_init()` sets up a page table for the kernel (see section [A.7 Page Table](pintos_7.html#SEC125)).
+The next block of functions we call initializes the kernel's memory system. `palloc_init()` sets up the kernel page allocator, which doles out memory one or more pages at a time (see section [A.5.1 Page Allocator](pintos_7.md)). `malloc_init()` sets up the allocator that handles allocations of arbitrary-size blocks of memory (see section [A.5.2 Block Allocator](pintos_7.md)). `paging_init()` sets up a page table for the kernel (see section [A.7 Page Table](pintos_7.md)).
 
 In projects 2 and later, `main()` also calls `tss_init()` and `gdt_init()`.
 
-The next set of calls initializes the interrupt system. `intr_init()` sets up the CPU's _interrupt descriptor table_ (IDT) to ready it for interrupt handling (see section [A.4.1 Interrupt Infrastructure](pintos_7.html#SEC118)), then `timer_init()` and `kbd_init()` prepare for handling timer interrupts and keyboard interrupts, respectively. `input_init()` sets up to merge serial and keyboard input into one stream. In projects 2 and later, we also prepare to handle interrupts caused by user programs using `exception_init()` and `syscall_init()`.
+The next set of calls initializes the interrupt system. `intr_init()` sets up the CPU's _interrupt descriptor table_ (IDT) to ready it for interrupt handling (see section [A.4.1 Interrupt Infrastructure](pintos_7.md)), then `timer_init()` and `kbd_init()` prepare for handling timer interrupts and keyboard interrupts, respectively. `input_init()` sets up to merge serial and keyboard input into one stream. In projects 2 and later, we also prepare to handle interrupts caused by user programs using `exception_init()` and `syscall_init()`.
 
 Now that interrupts are set up, we can start the scheduler with `thread_start()`, which creates the idle thread and enables interrupts. With interrupts enabled, interrupt-driven serial port I/O becomes possible, so we use `serial_init_queue()` to switch to that mode. Finally, `timer_calibrate()` calibrates the timer for accurate short delays.
 
@@ -64,89 +64,27 @@ Boot is complete, so we print a message.
 
 Function `run_actions()` now parses and executes actions specified on the kernel command line, such as `run` to run a test (in project 1) or a user program (in later projects).
 
-Finally, if \-q was specified on the kernel command line, we call `shutdown_power_off()` to terminate the machine simulator. Otherwise, `main()` calls `thread_exit()`, which allows any other running threads to continue running.
+Finally, if `-q` was specified on the kernel command line, we call `shutdown_power_off()` to terminate the machine simulator. Otherwise, `main()` calls `thread_exit()`, which allows any other running threads to continue running.
 
 * * *
 
 ### A.1.4 Physical Memory Map
 
-@headitem Memory Range
 
-Owner
-
-Contents
-
-00000000\--000003ff
-
-CPU
-
-Real mode interrupt table.
-
-00000400\--000005ff
-
-BIOS
-
-Miscellaneous data area.
-
-00000600\--00007bff
-
-\--
-
-\---
-
-00007c00\--00007dff
-
-Pintos
-
-Loader.
-
-0000e000\--0000efff
-
-Pintos
-
-Stack for loader; kernel stack and `struct thread` for initial kernel thread.
-
-0000f000\--0000ffff
-
-Pintos
-
-Page directory for startup code.
-
-00010000\--00020000
-
-Pintos
-
-Page tables for startup code.
-
-00020000\--0009ffff
-
-Pintos
-
-Kernel code, data, and uninitialized data segments.
-
-000a0000\--000bffff
-
-Video
-
-VGA display memory.
-
-000c0000\--000effff
-
-Hardware
-
-Reserved for expansion card RAM and ROM.
-
-000f0000\--000fffff
-
-BIOS
-
-ROM BIOS.
-
-00100000\--03ffffff
-
-Pintos
-
-Dynamic memory allocation.
+Address Range                 | Owner | Contents
+----------------------|-------|----------------------------------------
+`00000000`-`000003ff` | CPU   | Real mode interrupt table.
+`00000400`- `000005ff` | BIOS  | Miscellaneous data area.
+`00000600`-`00007bff` | \--   | \---
+`00007c00`-`00007dff` | Pintos | Loader.
+`0000e000`-`0000efff` | Pintos | Stack for loader; kernel stack and `struct thread` for initial kernel thread.
+`0000f000`-`0000ffff` | Pintos|Page directory for startup code.
+`00010000`-`00020000`|Pintos|Page tables for startup code.
+`00020000`-`0009ffff`|Pintos|Kernel code, data, and uninitialized data segments.
+`000a0000`-`000bffff`|Video|VGA display memory.
+`000c0000`-`000effff`|Hardware|Reserved for expansion card RAM and ROM.
+`000f0000`-`000fffff`|BIOS|ROM BIOS.
+`00100000`-`03ffffff`|Pintos|Dynamic memory allocation.
 
 * * *
 
@@ -166,7 +104,7 @@ Represents a thread or a user process. In the projects, you will have to add you
 Every `struct thread` occupies the beginning of its own page of memory. The rest of the page is used for the thread's stack, which grows downward from the end of the page. It looks like this:
 
  
-
+```
                   4 kB +---------------------------------+
                        |          kernel stack           |
                        |                |                |
@@ -188,10 +126,10 @@ sizeof (struct thread) +---------------------------------+
                        |              status             |
                        |               tid               |
                   0 kB +---------------------------------+
-
+```
 This has two consequences. First, `struct thread` must not be allowed to grow too big. If it does, then there will not be enough room for the kernel stack. The base `struct thread` is only a few bytes in size. It probably should stay well under 1 kB.
 
-Second, kernel stacks must not be allowed to grow too large. If a stack overflows, it will corrupt the thread state. Thus, kernel functions should not allocate large structures or arrays as non-static local variables. Use dynamic allocation with `malloc()` or `palloc_get_page()` instead (see section [A.5 Memory Allocation](pintos_7.html#SEC121)).
+Second, kernel stacks must not be allowed to grow too large. If a stack overflows, it will corrupt the thread state. Thus, kernel functions should not allocate large structures or arrays as non-static local variables. Use dynamic allocation with `malloc()` or `palloc_get_page()` instead (see section [A.5 Memory Allocation](pintos_7.md)).
 
 Member of `struct thread`: tid\_t **tid**
 
@@ -211,9 +149,9 @@ The thread is ready to run, but it's not running right now. The thread could be 
 
 Thread State: **`THREAD_BLOCKED`**
 
-The thread is waiting for something, e.g. a lock to become available, an interrupt to be invoked. The thread won't be scheduled again until it transitions to the `THREAD_READY` state with a call to `thread_unblock()`. This is most conveniently done indirectly, using one of the Pintos synchronization primitives that block and unblock threads automatically (see section [A.3 Synchronization](pintos_7.html#SEC110)).
+The thread is waiting for something, e.g. a lock to become available, an interrupt to be invoked. The thread won't be scheduled again until it transitions to the `THREAD_READY` state with a call to `thread_unblock()`. This is most conveniently done indirectly, using one of the Pintos synchronization primitives that block and unblock threads automatically (see section [A.3 Synchronization](pintos_7.md)).
 
-There is no _a priori_ way to tell what a blocked thread is waiting for, but a backtrace can help (see section [E.4 Backtraces](pintos_11.html#SEC159)).
+There is no _a priori_ way to tell what a blocked thread is waiting for, but a backtrace can help (see section [E.4 Backtraces](pintos_11.md)).
 
 Thread State: **`THREAD_DYING`**
 
@@ -227,11 +165,11 @@ Member of `struct thread`: uint8\_t \***stack**
 
 Every thread has its own stack to keep track of its state. When the thread is running, the CPU's stack pointer register tracks the top of the stack and this member is unused. But when the CPU switches to another thread, this member saves the thread's stack pointer. No other members are needed to save the thread's registers, because the other registers that must be saved are saved on the stack.
 
-When an interrupt occurs, whether in the kernel or a user program, an `struct intr_frame` is pushed onto the stack. When the interrupt occurs in a user program, the `struct intr_frame` is always at the very top of the page. See section [A.4 Interrupt Handling](pintos_7.html#SEC117), for more information.
+When an interrupt occurs, whether in the kernel or a user program, an `struct intr_frame` is pushed onto the stack. When the interrupt occurs in a user program, the `struct intr_frame` is always at the very top of the page. See section [A.4 Interrupt Handling](pintos_7.md), for more information.
 
 Member of `struct thread`: int **priority**
 
-A thread priority, ranging from `PRI_MIN` (0) to `PRI_MAX` (63). Lower numbers correspond to lower priorities, so that priority 0 is the lowest priority and priority 63 is the highest. Pintos as provided ignores thread priorities, but you will implement priority scheduling in project 1 (see section [3.2.3 Priority Scheduling](pintos_3.html#SEC36)).
+A thread priority, ranging from `PRI_MIN` (0) to `PRI_MAX` (63). Lower numbers correspond to lower priorities, so that priority 0 is the lowest priority and priority 63 is the highest. Pintos as provided ignores thread priorities, but you will implement priority scheduling in project 1 (see section [3.2.3 Priority Scheduling](pintos_3.md)).
 
 Member of `struct thread`: `struct list_elem` **allelem**
 
@@ -243,7 +181,7 @@ A "list element" used to put the thread into doubly linked lists, either `ready_
 
 Member of `struct thread`: uint32\_t \***pagedir**
 
-Only present in project 2 and later. See section [5.1.2.3 Page Tables](pintos_5.html#SEC69).
+Only present in project 2 and later. See section [5.1.2.3 Page Tables](pintos_5.md).
 
 Member of `struct thread`: unsigned **magic**
 
@@ -263,7 +201,7 @@ Before `thread_init()` runs, `thread_current()` will fail because the running th
 
 Function: void **thread\_start** (void)
 
-Called by `main()` to start the scheduler. Creates the idle thread, that is, the thread that is scheduled when no other thread is ready. Then enables interrupts, which as a side effect enables the scheduler because the scheduler runs on return from the timer interrupt, using `intr_yield_on_return()` (see section [A.4.3 External Interrupt Handling](pintos_7.html#SEC120)).
+Called by `main()` to start the scheduler. Creates the idle thread, that is, the thread that is scheduled when no other thread is ready. Then enables interrupts, which as a side effect enables the scheduler because the scheduler runs on return from the timer interrupt, using `intr_yield_on_return()` (see section [A.4.3 External Interrupt Handling](pintos_7.md)).
 
 Function: void **thread\_tick** (void)
 
@@ -277,7 +215,7 @@ Function: tid\_t **thread\_create** (const char \*name, int priority, thread\_fu
 
 Creates and starts a new thread named name with the given priority, returning the new thread's tid. The thread executes func, passing aux as the function's single argument.
 
-`thread_create()` allocates a page for the thread's `struct thread` and stack and initializes its members, then it sets up a set of fake stack frames for it (see section [A.2.3 Thread Switching](pintos_7.html#SEC109)). The thread is initialized in the blocked state, then unblocked just before returning, which allows the new thread to be scheduled (see [Thread States](pintos_7.html#Thread States)).
+`thread_create()` allocates a page for the thread's `struct thread` and stack and initializes its members, then it sets up a set of fake stack frames for it (see section [A.2.3 Thread Switching](pintos_7.md)). The thread is initialized in the blocked state, then unblocked just before returning, which allows the new thread to be scheduled (see [Thread States](pintos_7.md)).
 
 Type: **void thread\_func (void \*aux)**
 
@@ -285,11 +223,11 @@ This is the type of the function passed to `thread_create()`, whose aux argument
 
 Function: void **thread\_block** (void)
 
-Transitions the running thread from the running state to the blocked state (see [Thread States](pintos_7.html#Thread States)). The thread will not run again until `thread_unblock()` is called on it, so you'd better have some way arranged for that to happen. Because `thread_block()` is so low-level, you should prefer to use one of the synchronization primitives instead (see section [A.3 Synchronization](pintos_7.html#SEC110)).
+Transitions the running thread from the running state to the blocked state (see [Thread States](pintos_7.md)). The thread will not run again until `thread_unblock()` is called on it, so you'd better have some way arranged for that to happen. Because `thread_block()` is so low-level, you should prefer to use one of the synchronization primitives instead (see section [A.3 Synchronization](pintos_7.md)).
 
 Function: void **thread\_unblock** (struct thread \*thread)
 
-Transitions thread, which must be in the blocked state, to the ready state, allowing it to resume running (see [Thread States](pintos_7.html#Thread States)). This is called when the event that the thread is waiting for occurs, e.g. when the lock that the thread is waiting on becomes available.
+Transitions thread, which must be in the blocked state, to the ready state, allowing it to resume running (see [Thread States](pintos_7.md)). This is called when the event that the thread is waiting for occurs, e.g. when the lock that the thread is waiting on becomes available.
 
 Function: struct thread \***thread\_current** (void)
 
@@ -305,7 +243,7 @@ Returns the running thread's name. Equivalent to `thread_current ()->name`.
 
 Function: void **thread\_exit** (void) `NO_RETURN`
 
-Causes the current thread to exit. Never returns, hence `NO_RETURN` (see section [E.3 Function and Parameter Attributes](pintos_11.html#SEC158)).
+Causes the current thread to exit. Never returns, hence `NO_RETURN` (see section [E.3 Function and Parameter Attributes](pintos_11.md)).
 
 Function: void **thread\_yield** (void)
 
@@ -323,7 +261,7 @@ Function: int **thread\_get\_priority** (void)
 
 Function: void **thread\_set\_priority** (int new\_priority)
 
-Stub to set and get thread priority. See section [3.2.3 Priority Scheduling](pintos_3.html#SEC36).
+Stub to set and get thread priority. See section [3.2.3 Priority Scheduling](pintos_3.md).
 
 Function: int **thread\_get\_nice** (void)
 
@@ -333,7 +271,7 @@ Function: int **thread\_get\_recent\_cpu** (void)
 
 Function: int **thread\_get\_load\_avg** (void)
 
-Stubs for the advanced scheduler. See section [B. 4.4BSD Scheduler](pintos_8.html#SEC141).
+Stubs for the advanced scheduler. See section [B. 4.4BSD Scheduler](pintos_8.md).
 
 * * *
 
@@ -351,7 +289,7 @@ Running a thread for the first time is a special case. When `thread_create()` cr
 
 *   The topmost fake stack frame is for `switch_threads()`, represented by `struct switch_threads_frame`. The important part of this frame is its `eip` member, the return address. We point `eip` to `switch_entry()`, indicating it to be the function that called `switch_entry()`.
 
-*   The next fake stack frame is for `switch_entry()`, an assembly language routine in threads/switch.S that adjusts the stack pointer,[(4)](pintos_fot.html#FOOT4) calls `thread_schedule_tail()` (this special case is why `thread_schedule_tail()` is separate from `schedule()`), and returns. We fill in its stack frame so that it returns into `kernel_thread()`, a function in threads/thread.c.
+*   The next fake stack frame is for `switch_entry()`, an assembly language routine in threads/switch.S that adjusts the stack pointer, calls `thread_schedule_tail()` (this special case is why `thread_schedule_tail()` is separate from `schedule()`), and returns. We fill in its stack frame so that it returns into `kernel_thread()`, a function in threads/thread.c.
 
 *   The final stack frame is for `kernel_thread()`, which enables interrupts and calls the thread's function (the function passed to `thread_create()`). If the thread's function returns, it calls `thread_exit()` to terminate the thread.
 
@@ -370,7 +308,7 @@ The crudest way to do synchronization is to disable interrupts, that is, to temp
 
 Incidentally, this means that Pintos is a "preemptible kernel," that is, kernel threads can be preempted at any time. Traditional Unix systems are "nonpreemptible," that is, kernel threads can only be preempted at points where they explicitly call into the scheduler. (User programs can be preempted at any time in both models.) As you might imagine, preemptible kernels require more explicit synchronization.
 
-You should have little need to set the interrupt state directly. Most of the time you should use the other synchronization primitives described in the following sections. The main reason to disable interrupts is to synchronize kernel threads with external interrupt handlers, which cannot sleep and thus cannot use most other forms of synchronization (see section [A.4.3 External Interrupt Handling](pintos_7.html#SEC120)).
+You should have little need to set the interrupt state directly. Most of the time you should use the other synchronization primitives described in the following sections. The main reason to disable interrupts is to synchronize kernel threads with external interrupt handlers, which cannot sleep and thus cannot use most other forms of synchronization (see section [A.4.3 External Interrupt Handling](pintos_7.md)).
 
 Some external interrupts cannot be postponed, even by disabling interrupts. These interrupts, called _non-maskable interrupts_ (NMIs), are supposed to be used only in emergencies, e.g. when the computer is on fire. Pintos does not handle non-maskable interrupts.
 
@@ -412,7 +350,7 @@ A semaphore initialized to 1 is typically used for controlling access to a resou
 
 Semaphores can also be initialized to values larger than 1. These are rarely used.
 
-Semaphores were invented by Edsger Dijkstra and first used in the THE operating system (\[ [Dijkstra](pintos_14.html#Dijkstra)\]).
+Semaphores were invented by Edsger Dijkstra and first used in the THE operating system (\[ [Dijkstra](pintos_14.md)\]).
 
 Pintos' semaphore type and operations are declared in threads/synch.h.
 
@@ -436,15 +374,15 @@ Function: void **sema\_up** (struct semaphore \*sema)
 
 Executes the "up" or "V" operation on sema, incrementing its value. If any threads are waiting on sema, wakes one of them up.
 
-Unlike most synchronization primitives, `sema_up()` may be called inside an external interrupt handler (see section [A.4.3 External Interrupt Handling](pintos_7.html#SEC120)).
+Unlike most synchronization primitives, `sema_up()` may be called inside an external interrupt handler (see section [A.4.3 External Interrupt Handling](pintos_7.md)).
 
-Semaphores are internally built out of disabling interrupt (see section [A.3.1 Disabling Interrupts](pintos_7.html#SEC111)) and thread blocking and unblocking (`thread_block()` and `thread_unblock()`). Each semaphore maintains a list of waiting threads, using the linked list implementation in lib/kernel/list.c.
+Semaphores are internally built out of disabling interrupt (see section [A.3.1 Disabling Interrupts](pintos_7.md)) and thread blocking and unblocking (`thread_block()` and `thread_unblock()`). Each semaphore maintains a list of waiting threads, using the linked list implementation in lib/kernel/list.c.
 
 * * *
 
 ### A.3.3 Locks
 
-A _lock_ is like a semaphore with an initial value of 1 (see section [A.3.2 Semaphores](pintos_7.html#SEC112)). A lock's equivalent of "up" is called "release", and the "down" operation is called "acquire".
+A _lock_ is like a semaphore with an initial value of 1 (see section [A.3.2 Semaphores](pintos_7.md)). A lock's equivalent of "up" is called "release", and the "down" operation is called "acquire".
 
 Compared to a semaphore, a lock has one added restriction: only the thread that acquires a lock, called the lock's "owner", is allowed to release it. If this restriction is a problem, it's a good sign that a semaphore should be used, instead of a lock.
 
@@ -484,7 +422,7 @@ A _monitor_ is a higher-level form of synchronization than a semaphore or a lock
 
 Condition variables allow code in the monitor to wait for a condition to become true. Each condition variable is associated with an abstract condition, e.g. "some data has arrived for processing" or "over 10 seconds has passed since the user's last keystroke". When code in the monitor needs to wait for a condition to become true, it "waits" on the associated condition variable, which releases the lock and waits for the condition to be signaled. If, on the other hand, it has caused one of these conditions to become true, it "signals" the condition to wake up one waiter, or "broadcasts" the condition to wake all of them.
 
-The theoretical framework for monitors was laid out by C. A. R. Hoare (\[ [Hoare](pintos_14.html#Hoare)\]). Their practical usage was later elaborated in a paper on the Mesa operating system (\[ [Lampson](pintos_14.html#Lampson)\]).
+The theoretical framework for monitors was laid out by C. A. R. Hoare (\[ [Hoare](pintos_14.md)\]). Their practical usage was later elaborated in a paper on the Mesa operating system (\[ [Lampson](pintos_14.md)\]).
 
 Condition variable types and functions are declared in threads/synch.h.
 
@@ -517,38 +455,39 @@ Wakes up all threads, if any, waiting on cond (protected by monitor lock lock). 
 The classical example of a monitor is handling a buffer into which one or more "producer" threads write characters and out of which one or more "consumer" threads read characters. To implement this we need, besides the monitor lock, two condition variables which we will call not\_full and not\_empty:
 
  
-
-char buf\[BUF\_SIZE\];     /\* Buffer. \*/
-size\_t n = 0;           /\* 0 <= n <= BUF\_SIZE: # of characters in buffer. \*/
-size\_t head = 0;        /\* buf index of next char to write (mod BUF\_SIZE). \*/
-size\_t tail = 0;        /\* buf index of next char to read (mod BUF\_SIZE). \*/
-struct lock lock;       /\* Monitor lock. \*/
-struct condition not\_empty; /\* Signaled when the buffer is not empty. \*/
-struct condition not\_full; /\* Signaled when the buffer is not full. \*/
-
+```
+char buf[BUF_SIZE];         /* Buffer. */
+size_t n = 0;               /* 0 <= n <= BUF_SIZE: # of characters in buffer. */
+size_t head = 0;            /* buf index of next char to write (mod BUF_SIZE). */
+size_t tail = 0;            /* buf index of next char to read (mod BUF_SIZE). */
+struct lock lock;           /* Monitor lock. */
+struct condition not_empty; /* Signaled when the buffer is not empty. */
+struct condition not_full;  /* Signaled when the buffer is not full. */
+```
 ...initialize the locks and condition variables...
-
+```
 void put (char ch) {
-  lock\_acquire (&lock);
-  while (n == BUF\_SIZE)            /\* Can't add to buf as long as it's full. \*/
-    cond\_wait (&not\_full, &lock);
-  buf\[head++ % BUF\_SIZE\] = ch;     /\* Add ch to buf. \*/
+  lock_acquire (&lock);
+  while (n == BUF_SIZE)            /* Can't add to buf as long as it's full. */
+    cond_wait (&not_full, &lock);
+  buf[head++ % BUF_SIZE] = ch;     /* Add ch to buf. */
   n++;
-  cond\_signal (&not\_empty, &lock); /\* buf can't be empty anymore. \*/
-  lock\_release (&lock);
+  cond_signal (&not_empty, &lock); /* buf can't be empty anymore. */
+  lock_release (&lock);
 }
-
+```
+```
 char get (void) {
   char ch;
-  lock\_acquire (&lock);
-  while (n == 0)                  /\* Can't read buf as long as it's empty. \*/
-    cond\_wait (&not\_empty, &lock);
-  ch = buf\[tail++ % BUF\_SIZE\];    /\* Get ch from buf. \*/
+  lock_acquire (&lock);
+  while (n == 0)                  /* Can't read buf as long as it's empty. */
+    cond_wait (&not_empty, &lock);
+  ch = buf[tail++ % BUF_SIZE];    /* Get ch from buf. */
   n--;
-  cond\_signal (&not\_full, &lock); /\* buf can't be full anymore. \*/
-  lock\_release (&lock);
+  cond_signal (&not_full, &lock); /* buf can't be full anymore. */
+  lock_release (&lock);
 }
-
+```
 Note that `BUF_SIZE` must divide evenly into `SIZE_MAX + 1` for the above code to be completely correct. Otherwise, it will fail the first time `head` wraps around to 0. In practice, `BUF_SIZE` would ordinarily be a power of 2.
 
 * * *
@@ -560,53 +499,53 @@ An _optimization barrier_ is a special statement that prevents the compiler from
 One reason to use an optimization barrier is when data can change asynchronously, without the compiler's knowledge, e.g. by another thread or an interrupt handler. The `too_many_loops()` function in devices/timer.c is an example. This function starts out by busy-waiting in a loop until a timer tick occurs:
 
  
-
-/\* Wait for a timer tick. \*/
-int64\_t start = ticks;
+```
+/* Wait for a timer tick. */
+int64_t start = ticks;
 while (ticks == start)
   barrier ();
-
+```
 Without an optimization barrier in the loop, the compiler could conclude that the loop would never terminate, because `start` and `ticks` start out equal and the loop itself never changes them. It could then "optimize" the function into an infinite loop, which would definitely be undesirable.
 
 Optimization barriers can be used to avoid other compiler optimizations. The `busy_wait()` function, also in devices/timer.c, is an example. It contains this loop:
 
  
-
+```
 while (loops-- > 0)
   barrier ();
-
+```
 The goal of this loop is to busy-wait by counting `loops` down from its original value to 0. Without the barrier, the compiler could delete the loop entirely, because it produces no useful output and has no side effects. The barrier forces the compiler to pretend that the loop body has an important effect.
 
 Finally, optimization barriers can be used to force the ordering of memory reads or writes. For example, suppose we add a "feature" that, whenever a timer interrupt occurs, the character in global variable `timer_put_char` is printed on the console, but only if global Boolean variable `timer_do_put` is true. The best way to set up x to be printed is then to use an optimization barrier, like this:
 
  
-
-timer\_put\_char = 'x';
+```
+timer_put_char = 'x';
 barrier ();
-timer\_do\_put = true;
-
+timer_do_put = true;
+```
 Without the barrier, the code is buggy because the compiler is free to reorder operations when it doesn't see a reason to keep them in the same order. In this case, the compiler doesn't know that the order of assignments is important, so its optimizer is permitted to exchange their order. There's no telling whether it will actually do this, and it is possible that passing the compiler different optimization flags or using a different version of the compiler will produce different behavior.
 
 Another solution is to disable interrupts around the assignments. This does not prevent reordering, but it prevents the interrupt handler from intervening between the assignments. It also has the extra runtime cost of disabling and re-enabling interrupts:
 
  
-
-enum intr\_level old\_level = intr\_disable ();
-timer\_put\_char = 'x';
-timer\_do\_put = true;
-intr\_set\_level (old\_level);
-
+```
+enum intr_level old_level = intr_disable ();
+timer_put_char = 'x';
+timer_do_put = true;
+intr_set_level (old_level);
+```
 A second solution is to mark the declarations of `timer_put_char` and `timer_do_put` as volatile. This keyword tells the compiler that the variables are externally observable and restricts its latitude for optimization. However, the semantics of volatile are not well-defined, so it is not a good general solution. The base Pintos code does not use volatile at all.
 
 The following is _not_ a solution, because locks neither prevent interrupts nor prevent the compiler from reordering the code within the region where the lock is held:
 
  
-
-lock\_acquire (&timer\_lock);     /\* INCORRECT CODE \*/
-timer\_put\_char = 'x';
-timer\_do\_put = true;
-lock\_release (&timer\_lock);
-
+```
+lock_acquire (&timer_lock);     /* INCORRECT CODE */
+timer_put_char = 'x';
+timer_do_put = true;
+lock_release (&timer_lock);
+```
 The compiler treats invocation of any function defined externally, that is, in another source file, as a limited form of optimization barrier. Specifically, the compiler assumes that any externally defined function may access any statically or dynamically allocated data and any local variable whose address is taken. This often means that explicit barriers can be omitted. It is one reason that Pintos contains few explicit barriers.
 
 A function defined in the same source file, or in a header included by the source file, cannot be relied upon as a optimization barrier. This applies even to invocation of a function before its definition, because the compiler may read and parse the entire source file before performing optimization.
@@ -620,11 +559,11 @@ An _interrupt_ notifies the CPU of some event. Much of the work of an operating 
 
 *   _Internal interrupts_, that is, interrupts caused directly by CPU instructions. System calls, attempts at invalid memory access (_page faults_), and attempts to divide by zero are some activities that cause internal interrupts. Because they are caused by CPU instructions, internal interrupts are _synchronous_ or synchronized with CPU instructions. `intr_disable()` does not disable internal interrupts.
 
-*   _External interrupts_, that is, interrupts originating outside the CPU. These interrupts come from hardware devices such as the system timer, keyboard, serial ports, and disks. External interrupts are _asynchronous_, meaning that their delivery is not synchronized with instruction execution. Handling of external interrupts can be postponed with `intr_disable()` and related functions (see section [A.3.1 Disabling Interrupts](pintos_7.html#SEC111)).
+*   _External interrupts_, that is, interrupts originating outside the CPU. These interrupts come from hardware devices such as the system timer, keyboard, serial ports, and disks. External interrupts are _asynchronous_, meaning that their delivery is not synchronized with instruction execution. Handling of external interrupts can be postponed with `intr_disable()` and related functions (see section [A.3.1 Disabling Interrupts](pintos_7.md)).
 
 The CPU treats both classes of interrupts largely the same way, so Pintos has common infrastructure to handle both classes. The following section describes this common infrastructure. The sections after that give the specifics of external and internal interrupts.
 
-If you haven't already read chapter 3, "Basic Execution Environment," in \[ [IA32-v1](pintos_14.html#IA32-v1)\], it is recommended that you do so now. You might also want to skim chapter 5, "Interrupt and Exception Handling," in \[ [IA32-v3a](pintos_14.html#IA32-v3a)\].
+If you haven't already read chapter 3, "Basic Execution Environment," in \[ [IA32-v1](pintos_14.md)\], it is recommended that you do so now. You might also want to skim chapter 5, "Interrupt and Exception Handling," in \[ [IA32-v3a](pintos_14.md)\].
 
 * * *
 
@@ -634,7 +573,7 @@ When an interrupt occurs, the CPU saves its most essential state on a stack and 
 
 In Pintos, `intr_init()` in threads/interrupt.c sets up the IDT so that each entry points to a unique entry point in threads/intr-stubs.S named `intrNN_stub()`, where NN is the interrupt number in hexadecimal. Because the CPU doesn't give us any other way to find out the interrupt number, this entry point pushes the interrupt number on the stack. Then it jumps to `intr_entry()`, which pushes all the registers that the processor didn't already push for us, and then calls `intr_handler()`, which brings us back into C in threads/interrupt.c.
 
-The main job of `intr_handler()` is to call the function registered for handling the particular interrupt. (If no function is registered, it dumps some information to the console and panics.) It also does some extra processing for external interrupts (see section [A.4.3 External Interrupt Handling](pintos_7.html#SEC120)).
+The main job of `intr_handler()` is to call the function registered for handling the particular interrupt. (If no function is registered, it dumps some information to the console and panics.) It also does some extra processing for external interrupts (see section [A.4.3 External Interrupt Handling](pintos_7.md)).
 
 When `intr_handler()` returns, the assembly code in threads/intr-stubs.S restores all the CPU registers saved earlier and directs the CPU to return from the interrupt.
 
@@ -696,11 +635,11 @@ Returns the name of the interrupt numbered vec, or `"unknown"` if the interrupt 
 
 Internal interrupts are caused directly by CPU instructions executed by the running kernel thread or user process (from project 2 onward). An internal interrupt is therefore said to arise in a "process context."
 
-In an internal interrupt's handler, it can make sense to examine the `struct intr_frame` passed to the interrupt handler, or even to modify it. When the interrupt returns, modifications in `struct intr_frame` become changes to the calling thread or process's state. For example, the Pintos system call handler returns a value to the user program by modifying the saved EAX register (see section [4.5.2 System Call Details](pintos_4.html#SEC62)).
+In an internal interrupt's handler, it can make sense to examine the `struct intr_frame` passed to the interrupt handler, or even to modify it. When the interrupt returns, modifications in `struct intr_frame` become changes to the calling thread or process's state. For example, the Pintos system call handler returns a value to the user program by modifying the saved EAX register (see section [4.5.2 System Call Details](pintos_4.md)).
 
-There are no special restrictions on what an internal interrupt handler can or can't do. Generally they should run with interrupts enabled, just like other code, and so they can be preempted by other kernel threads. Thus, they do need to synchronize with other threads on shared data and other resources (see section [A.3 Synchronization](pintos_7.html#SEC110)).
+There are no special restrictions on what an internal interrupt handler can or can't do. Generally they should run with interrupts enabled, just like other code, and so they can be preempted by other kernel threads. Thus, they do need to synchronize with other threads on shared data and other resources (see section [A.3 Synchronization](pintos_7.md)).
 
-Internal interrupt handlers can be invoked recursively. For example, the system call handler might cause a page fault while attempting to read user memory. Deep recursion would risk overflowing the limited kernel stack (see section [A.2.1 `struct thread`](pintos_7.html#SEC107)), but should be unnecessary.
+Internal interrupt handlers can be invoked recursively. For example, the system call handler might cause a page fault while attempting to read user memory. Deep recursion would risk overflowing the limited kernel stack (see section [A.2.1 `struct thread`](pintos_7.md)), but should be unnecessary.
 
 Function: void **intr\_register\_int** (uint8\_t vec, int dpl, enum intr\_level level, intr\_handler\_func \*handler, const char \*name)
 
@@ -718,7 +657,7 @@ External interrupts are caused by events outside the CPU. They are asynchronous,
 
 In an external interrupt, the `struct intr_frame` passed to the handler is not very meaningful. It describes the state of the thread or process that was interrupted, but there is no way to predict which one that is. It is possible, although rarely useful, to examine it, but modifying it is a recipe for disaster.
 
-Only one external interrupt may be processed at a time. Neither internal nor external interrupt may nest within an external interrupt handler. Thus, an external interrupt's handler must run with interrupts disabled (see section [A.3.1 Disabling Interrupts](pintos_7.html#SEC111)).
+Only one external interrupt may be processed at a time. Neither internal nor external interrupt may nest within an external interrupt handler. Thus, an external interrupt's handler must run with interrupts disabled (see section [A.3.1 Disabling Interrupts](pintos_7.md)).
 
 An external interrupt handler must not sleep or yield, which rules out calling `lock_acquire()`, `thread_yield()`, and many other functions. Sleeping in interrupt context would effectively put the interrupted thread to sleep, too, until the interrupt handler was again scheduled and returned. This would be unfair to the unlucky thread, and it would deadlock if the handler were waiting for the sleeping thread to, e.g., release a lock.
 
@@ -757,15 +696,15 @@ Pintos contains two memory allocators, one that allocates memory in units of a p
 
 The page allocator declared in threads/palloc.h allocates memory in units of a page. It is most often used to allocate memory one page at a time, but it can also allocate multiple contiguous pages at once.
 
-The page allocator divides the memory it allocates into two pools, called the kernel and user pools. By default, each pool gets half of system memory above 1 MB, but the division can be changed with the \-ul kernel command line option (see [Why PAL\_USER?](pintos_5.html#Why PAL_USER?)). An allocation request draws from one pool or the other. If one pool becomes empty, the other may still have free pages. The user pool should be used for allocating memory for user processes and the kernel pool for all other allocations. This will only become important starting with project 3. Until then, all allocations should be made from the kernel pool.
+The page allocator divides the memory it allocates into two pools, called the kernel and user pools. By default, each pool gets half of system memory above 1 MB, but the division can be changed with the \-ul kernel command line option (see [Why PAL\_USER?](pintos_5.md)). An allocation request draws from one pool or the other. If one pool becomes empty, the other may still have free pages. The user pool should be used for allocating memory for user processes and the kernel pool for all other allocations. This will only become important starting with project 3. Until then, all allocations should be made from the kernel pool.
 
-Each pool's usage is tracked with a bitmap, one bit per page in the pool. A request to allocate n pages scans the bitmap for n consecutive bits set to false, indicating that those pages are free, and then sets those bits to true to mark them as used. This is a "first fit" allocation strategy (see [Wilson](pintos_14.html#Wilson)).
+Each pool's usage is tracked with a bitmap, one bit per page in the pool. A request to allocate n pages scans the bitmap for n consecutive bits set to false, indicating that those pages are free, and then sets those bits to true to mark them as used. This is a "first fit" allocation strategy.
 
 The page allocator is subject to fragmentation. That is, it may not be possible to allocate n contiguous pages even though n or more pages are free, because the free pages are separated by used pages. In fact, in pathological cases it may be impossible to allocate 2 contiguous pages even though half of the pool's pages are free. Single-page requests can't fail due to fragmentation, so requests for multiple contiguous pages should be limited as much as possible.
 
 Pages may not be allocated from interrupt context, but they may be freed.
 
-When a page is freed, all of its bytes are cleared to 0xcc, as a debugging aid (see section [E.8 Tips](pintos_11.html#SEC167)).
+When a page is freed, all of its bytes are cleared to 0xcc, as a debugging aid (see section [E.8 Tips](pintos_11.md)).
 
 Page allocator types and functions are described below.
 

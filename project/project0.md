@@ -206,7 +206,7 @@ The code place for you to add this feature is in line 136 of threads/init.c with
 
 **Exercise 0.3**
 
-Enhance threads/init.c to implement a tiny kernel monitor in Pintos. Feel free to add new source files in to the Pintos code base for this task, e.g., provide a `readline` library function. Refer to [Adding Source Files](pintos_3.html#Adding Source Files) for how to do so.
+Enhance threads/init.c to implement a tiny kernel monitor in Pintos. Feel free to add new source files in to the Pintos code base for this task, e.g., provide a `readline` library function. Refer to [Adding Source Files](project1.md#add2make) for how to do so.
 
 _Hint:_ You may need to use some functions provided in lib/kernel/console.c, lib/stdio.c and devices/input.c.
 
@@ -217,8 +217,6 @@ Submission Instruction
 
 **Note**
 
-To hand in your submission for this lab, first cd to the root of your pintos source code repository. Commit all the changes you have made for this lab (with `git add` and `git commit` command). Then archive the entire repository with `git archive --prefix=lab0/ --format=tar HEAD | gzip > lab0-handin.tar.gz`. Double check the archive file contains the content you want to submit and then submit lab0-handin.tar.gz through [Blackboard](https://blackboard.jhu.edu) before the deadline. For later projects, we will collect group submissions through GitHub classroom.
+To hand in your submission for this lab, first cd to the root of your pintos source code repository. Commit all the changes you have made for this lab (with `git add` and `git commit` command).
 
 * * *
-
-Ryan Huang | Last updated 2018-01-16 13:17:24 -0500.

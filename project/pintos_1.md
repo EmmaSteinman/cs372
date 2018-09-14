@@ -115,7 +115,7 @@ Your test result grade will be based on our tests. Each project has several test
 
 For project 1, the tests will probably run faster in Bochs. For the rest of the projects, they will run much faster in QEMU. `make check` will select the faster simulator by default, but you can override its choice by specifying SIMULATOR=--bochs or SIMULATOR=--qemu on the `make` command line.
 
-You can also run individual tests one at a time. A given test t writes its output to t.output, then a script scores the output as "pass" or "fail" and writes the verdict to t.result. To run and grade a single test, `make` the .result file explicitly from the build directory, e.g. `make tests/threads/alarm-multiple.result`. If `make` says that the test result is up-to-date, but you want to re-run it anyway, either run `make clean` or delete the .output file by hand.
+You can also run individual tests one at a time. A given test `t` writes its output to `t.output`, then a script scores the output as "pass" or "fail" and writes the verdict to `t.result`. To run and grade a single test, `make` the .result file explicitly from the build directory, e.g. `make tests/threads/alarm-multiple.result`. If `make` says that the test result is up-to-date, but you want to re-run it anyway, either run `make clean` or delete the .output file by hand.
 
 By default, each test provides feedback only at completion, not during its run. If you prefer, you can observe the progress of each test by specifying VERBOSE=1 on the `make` command line, as in `make check VERBOSE=1`. You can also provide arbitrary options to the `pintos` run by the tests with PINTOSOPTS='...', e.g. `make check PINTOSOPTS='-j 1'` to select a jitter value of 1 (see section [1.1.4 Debugging versus Testing](pintos_1.md)).
 
@@ -137,13 +137,13 @@ Don't forget that design quality, including the design document, is 30% of your 
 
 #### 1.2.2.1 Design Document
 
-We provide a design document template for each project. For each significant part of a project, the template asks questions in four areas:
+For each significant part of a project, the template asks questions in four areas:
 
 **Data Structures**
 
 The instructions for this section are always the same:
 
-> Copy here the declaration of each new or changed `struct` or `struct` member, global or static variable, `typedef`, or enumeration. Identify the purpose of each in 25 words or less.
+> Copy here the declaration of each new or changed `struct` or `struct` member, global or static variable, `typedef`, or enumeration. Document the purpose of each in 25 words or less.
 
 The first part is mechanical. Just copy new or modified declarations into the design document, to highlight for us the actual changes to data structures. Each declaration should include the comment that should accompany it in the source code (see below).
 
@@ -163,7 +163,7 @@ An operating system kernel is a complex, multithreaded program, in which synchro
 
 Whereas the other sections primarily ask "what" and "how," the rationale section concentrates on "why." This is where we ask you to justify some design decisions, by explaining why the choices you made are better than alternatives. You may be able to state these in terms of time and space complexity, which can be made as rough or informal arguments (formal language or proofs are unnecessary).
 
-An incomplete, evasive, or non-responsive design document or one that strays from the template without good reason may be penalized. Incorrect capitalization, punctuation, spelling, or grammar can also cost points. See section [D. Project Documentation](pintos_10.md), for a sample design document for a fictitious project.
+An incomplete, evasive, or non-responsive design document or one that strays from the template without good reason may be penalized. Incorrect capitalization, punctuation, spelling, or grammar can also cost points.
 
 * * *
 
@@ -171,7 +171,7 @@ An incomplete, evasive, or non-responsive design document or one that strays fro
 
 Your design will also be judged by looking at your source code. We will typically look at the differences between the original Pintos source tree and your submission, based on the output of a command like `diff -urpb pintos.orig pintos.submitted`. We will try to match up your description of the design with the code submitted. Important discrepancies between the description and the actual code will be penalized, as will be any bugs we find by spot checks.
 
-The most important aspects of source code design are those that specifically relate to the operating system issues at stake in the project. For example, the organization of an inode is an important part of file system design, so in the file system project a poorly designed inode would lose points. Other issues are much less important. For example, multiple Pintos design problems call for a "priority queue," that is, a dynamic collection from which the minimum (or maximum) item can quickly be extracted. Fast priority queues can be implemented many ways, but we do not expect you to build a fancy data structure even if it might improve performance. Instead, you are welcome to use a linked list (and Pintos even provides one with convenient functions for sorting and finding minimums and maximums).
+The most important aspects of source code design are those that specifically relate to the operating system issues at stake in the project. For example, the organization of an `inode` is an important part of file system design, so in the file system project a poorly designed `inode` would lose points. Other issues are much less important. For example, multiple Pintos design problems call for a "priority queue," that is, a dynamic collection from which the minimum (or maximum) item can quickly be extracted. Fast priority queues can be implemented many ways, but we do not expect you to build a fancy data structure even if it might improve performance. Instead, you are welcome to use a linked list (and Pintos even provides one with convenient functions for sorting and finding minimums and maximums).
 
 Pintos is written in a consistent style. Make your additions and modifications in existing Pintos source files blend in, not stick out. In new source files, adopt the existing Pintos style by preference, but make your code self-consistent at the very least. There should not be a patchwork of different styles that makes it obvious that three different people wrote the code. Use horizontal and vertical white space to make code readable. Add a brief comment on every structure, structure member, global or static variable, typedef, enumeration, and function definition. Update existing comments as you modify code. Don't comment out or use the preprocessor to ignore blocks of code (instead, remove it entirely). Use assertions to document key invariants. Decompose code into functions for clarity. Code that is difficult to understand because it violates these or other "common sense" software engineering practices will be penalized.
 
