@@ -11,3 +11,6 @@ p4
 p4.output
 t0
 t1
+.ipynb_checkpoints
+.nbgrader*
+roster.csv
