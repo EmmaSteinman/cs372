@@ -1,13 +1,13 @@
 Project 3: Virtual Memory
 =========================
 
-**Due:** Thursday 11/09 11:59 pm
+**Due:** Thursday 11/15 11:59 pm
 
 By now you should have some familiarity with the inner workings of Pintos. Your OS can properly handle multiple threads of execution with proper synchronization, and can load multiple user programs at once. However, the number and size of programs that can run is limited by the machine's main memory size. In this assignment, you will remove that limitation.
 
 You will build this assignment on top of the last one. Test programs from project 2 should also work with project 3. You should take care to fix any bugs in your project 2 submission before you start work on project 3, because those bugs will most likely cause the same problems in project 3.
 
-You will continue to handle Pintos disks and file systems the same way you did in the previous assignment (see section [3.1.2 Using the File System](project2.html#SEC35)).
+You will continue to handle Pintos disks and file systems the same way you did in the previous assignment (see section [3.1.2 Using the File System](project2.md#SEC35)).
 
 * * *
 
@@ -32,7 +32,7 @@ Provides sector-based read and write access to block device. You will use this i
 
 ### Memory Terminology
 
-Careful definitions are needed to keep discussion of virtual memory from being confusing. Thus, we begin by presenting some terminology for memory and storage. Some of these terms should be familiar from project 2 (see section [3.1.4 Virtual Memory Layout](project2.html#SEC37)), but much of it is new.
+Careful definitions are needed to keep discussion of virtual memory from being confusing. Thus, we begin by presenting some terminology for memory and storage. Some of these terms should be familiar from project 2 (see section [3.1.4 Virtual Memory Layout](project2.md#SEC37)), but much of it is new.
 
 * * *
 
@@ -41,13 +41,13 @@ Careful definitions are needed to keep discussion of virtual memory from being c
 A _page_, sometimes called a _virtual page_, is a continuous region of virtual memory 4,096 bytes (the _page size_) in length. A page must be _page-aligned_, that is, start on a virtual address evenly divisible by the page size. Thus, a 32-bit virtual address can be divided into a 20-bit _page number_ and a 12-bit _page offset_ (or just _offset_), like this:
 
  
-
+```
          31               12 11        0
         +-------------------+-----------+
         |    Page Number    |   Offset  |
         +-------------------+-----------+
                  Virtual Address
-
+```
 Each process has an independent set of _user (virtual) pages_, which are those pages below virtual address `PHYS_BASE`, typically 0xc0000000 (3 GB). The set of _kernel (virtual) pages_, on the other hand, is global, remaining the same regardless of what thread or process is active. The kernel may access both user and kernel pages, but a user process may access only its own user pages. See section [3.1.4 Virtual Memory Layout](project2.html#SEC37), for more information.
 
 Pintos provides several useful functions for working with virtual addresses. See section [A.6 Virtual Addresses](pintos_7.html#SEC124), for details.
@@ -59,28 +59,28 @@ Pintos provides several useful functions for working with virtual addresses. See
 A _frame_, sometimes called a _physical frame_ or a _page frame_, is a continuous region of physical memory. Like pages, frames must be page-size and page-aligned. Thus, a 32-bit physical address can be divided into a 20-bit _frame number_ and a 12-bit _frame offset_ (or just _offset_), like this:
 
  
-
+```
          31               12 11        0
         +-------------------+-----------+
         |    Frame Number   |   Offset  |
         +-------------------+-----------+
                  Physical Address
-
+```
 The 80x86 doesn't provide any way to directly access memory at a physical address. Pintos works around this by mapping kernel virtual memory directly to physical memory: the first page of kernel virtual memory is mapped to the first frame of physical memory, the second page to the second frame, and so on. Thus, frames can be accessed through kernel virtual memory.
 
-Pintos provides functions for translating between physical addresses and kernel virtual addresses. See section [A.6 Virtual Addresses](pintos_7.html#SEC124), for details.
+Pintos provides functions for translating between physical addresses and kernel virtual addresses. See section [A.6 Virtual Addresses](pintos_7.md), for details.
 
 * * *
 *
 <a name=SEC59></a>
 #### Page Tables
 
-In Pintos, a _page table_ is a data structure that the CPU uses to translate a virtual address to a physical address, that is, from a page to a frame. The page table format is dictated by the 80x86 architecture. Pintos provides page table management code in pagedir.c (see section [A.7 Page Table](pintos_7.html#SEC125)).
+In Pintos, a _page table_ is a data structure that the CPU uses to translate a virtual address to a physical address, that is, from a page to a frame. The page table format is dictated by the 80x86 architecture. Pintos provides page table management code in pagedir.c (see section [A.7 Page Table](pintos_7.md)).
 
 The diagram below illustrates the relationship between pages and frames. The virtual address, on the left, consists of a page number and an offset. The page table translates the page number into a frame number, which is combined with the unmodified offset to obtain the physical address, on the right.
 
  
-
+```
                     +----------+
    .--------------->|Page Table|---------.
   /                 +----------+          |
@@ -90,7 +90,7 @@ The diagram below illustrates the relationship between pages and frames. The vir
 +-----------+-------+                  +------------+-------+
 Virt Addr      |                       Phys Addr       ^
              \\\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_/
-
+```
 * * *
 
 #### Swap Slots
@@ -129,7 +129,7 @@ Possible choices of data structures include arrays, lists, bitmaps, and hash tab
 
 Pintos includes a bitmap data structure in lib/kernel/bitmap.c and lib/kernel/bitmap.h. A bitmap is an array of bits, each of which can be true or false. Bitmaps are typically used to track usage in a set of (identical) resources: if resource n is in use, then bit n of the bitmap is true. Pintos bitmaps are fixed in size, although you could extend their implementation to support resizing.
 
-Pintos also includes a hash table data structure (see section [A.8 Hash Table](pintos_7.html#SEC133)). Pintos hash tables efficiently support insertions and deletions over a wide range of table sizes.
+Pintos also includes a hash table data structure (see section [A.8 Hash Table](pintos_7.md)). Pintos hash tables efficiently support insertions and deletions over a wide range of table sizes.
 
 Although more complex data structures may yield performance or other benefits, they may also needlessly complicate your implementation. Thus, we do not recommend implementing any advanced data structure (e.g. a balanced binary tree) as part of your design.
 
@@ -141,7 +141,7 @@ The _supplemental page table_ supplements the page table with additional data ab
 
 The supplemental page table is used for at least two purposes. Most importantly, on a page fault, the kernel looks up the virtual page that faulted in the supplemental page table to find out what data should be there. Second, the kernel consults the supplemental page table when a process terminates, to decide what resources to free.
 
-You may organize the supplemental page table as you wish. There are at least two basic approaches to its organization: in terms of segments or in terms of pages. Optionally, you may use the page table itself as an index to track the members of the supplemental page table. You will have to modify the Pintos page table implementation in pagedir.c to do so. We recommend this approach for advanced students only. See section [A.7.4.2 Page Table Entry Format](pintos_7.html#SEC131), for more information.
+You may organize the supplemental page table as you wish. There are at least two basic approaches to its organization: in terms of segments or in terms of pages. Optionally, you may use the page table itself as an index to track the members of the supplemental page table. You will have to modify the Pintos page table implementation in pagedir.c to do so. We recommend this approach for advanced students only. See section [A.7.4.2 Page Table Entry Format](pintos_7.md), for more information.
 
 The most important user of the supplemental page table is the page fault handler. In project 2, a page fault always indicated a bug in the kernel or a user program. In project 3, this is no longer true. Now, a page fault might only indicate that the page must be brought in from a file or swap. You will have to implement a more sophisticated page fault handler to handle these cases. Your page fault handler, which you should implement by modifying `page_fault()` in userprog/exception.c, needs to do roughly the following:
 
@@ -195,7 +195,7 @@ In Pintos, every user virtual page is aliased to its kernel virtual page. You mu
 
 Other aliases should only arise if you implement sharing for extra credit (see [VM Extra Credit](#VM Extra Credit)), or if there is a bug in your code.
 
-See section [A.7.3 Accessed and Dirty Bits](pintos_7.html#SEC128), for details of the functions to work with accessed and dirty bits.
+See section [A.7.3 Accessed and Dirty Bits](pintos_7.md), for details of the functions to work with accessed and dirty bits.
 
 * * *
 
@@ -220,7 +220,7 @@ Suppose file foo is 0x1000 bytes (4 kB, or one page) long. If foo is mapped into
 Here's a program that uses `mmap` to print a file to the console. It opens the file specified on the command line, maps it at virtual address 0x10000000, writes the mapped data to the console (fd 1), and unmaps the file.
 
  
-
+```
 #include <stdio.h>
 #include <syscall.h>
 int main (int argc UNUSED, char \*argv\[\])
@@ -233,7 +233,7 @@ write (1, data, filesize (fd));       /\* Write file to console. \*/
 munmap (map);                         /\* Unmap file (optional). \*/
 return 0;
 }
-
+```
 A similar program with full error handling is included as mcat.c in the examples directory, which also contains mcp.c as a second example of `mmap`.
 
 Your submission must be able to track what memory is used by memory mapped files. This is necessary to properly handle page faults in the mapped regions and to ensure that mapped files do not overlap any other segments within the process.
@@ -271,8 +271,7 @@ This assignment is an open-ended design problem. We are going to say as little a
 
 ### 0\. Design Document
 
-Before you turn in your project, you must copy [the project 3 design document template](vm.tmpl) into your source tree under the name pintos/src/vm/DESIGNDOC and fill it in. We recommend that you read the design document template before you start working on the project. See section [D. Project Documentation](pintos_10.html#SEC152), for a sample design document that goes along with a fictitious project.
-
+Before you turn in your project, you must copy [the project 3 design document template](vm.tmpl) into your source tree under the name pintos/src/vm/DESIGNDOC and fill it in. We recommend that you read the design document template before you start working on the project.
 * * *
 
 ### 1\. Paging
@@ -309,9 +308,9 @@ Implement stack growth. In project 2, the stack was a single page at the top of 
 
 Allocate additional pages only if they "appear" to be stack accesses. Devise a heuristic that attempts to distinguish stack accesses from other accesses.
 
-User programs are buggy if they write to the stack below the stack pointer, because typical real OSes may interrupt a process at any time to deliver a "signal," which pushes data on the stack.[(4)](pintos_fot.html#FOOT4) However, the 80x86 `PUSH` instruction checks access permissions before it adjusts the stack pointer, so it may cause a page fault 4 bytes below the stack pointer. (Otherwise, `PUSH` would not be restartable in a straightforward fashion.) Similarly, the `PUSHA` instruction pushes 32 bytes at once, so it can fault 32 bytes below the stack pointer.
+User programs are buggy if they write to the stack below the stack pointer, because typical real OSes may interrupt a process at any time to deliver a "signal," which pushes data on the stack. However, the 80x86 `PUSH` instruction checks access permissions before it adjusts the stack pointer, so it may cause a page fault 4 bytes below the stack pointer. (Otherwise, `PUSH` would not be restartable in a straightforward fashion.) Similarly, the `PUSHA` instruction pushes 32 bytes at once, so it can fault 32 bytes below the stack pointer.
 
-You will need to be able to obtain the current value of the user program's stack pointer. Within a system call or a page fault generated by a user program, you can retrieve it from the `esp` member of the `struct intr_frame` passed to `syscall_handler()` or `page_fault()`, respectively. If you verify user pointers before accessing them (see section [3.1.5 Accessing User Memory](project2.html#SEC39)), these are the only cases you need to handle. On the other hand, if you depend on page faults to detect invalid memory access, you will need to handle another case, where a page fault occurs in the kernel. Since the processor only saves the stack pointer when an exception causes a switch from user to kernel mode, reading `esp` out of the `struct intr_frame` passed to `page_fault()` would yield an undefined value, not the user stack pointer. You will need to arrange another way, such as saving `esp` into `struct thread` on the initial transition from user to kernel mode.
+You will need to be able to obtain the current value of the user program's stack pointer. Within a system call or a page fault generated by a user program, you can retrieve it from the `esp` member of the `struct intr_frame` passed to `syscall_handler()` or `page_fault()`, respectively. If you verify user pointers before accessing them (see section [3.1.5 Accessing User Memory](project2.md#SEC39)), these are the only cases you need to handle. On the other hand, if you depend on page faults to detect invalid memory access, you will need to handle another case, where a page fault occurs in the kernel. Since the processor only saves the stack pointer when an exception causes a switch from user to kernel mode, reading `esp` out of the `struct intr_frame` passed to `page_fault()` would yield an undefined value, not the user stack pointer. You will need to arrange another way, such as saving `esp` into `struct thread` on the initial transition from user to kernel mode.
 
 You should impose some absolute limit on stack size, as do most OSes. Some OSes make the limit user-adjustable, e.g. with the `ulimit` command on many Unix systems. On many GNU/Linux systems, the default limit is 8 MB.
 
@@ -356,7 +355,7 @@ If two or more processes map the same file, there is no requirement that they se
 
 ### 4\. Accessing User Memory
 
-You will need to adapt your code to access user memory (see section [3.1.5 Accessing User Memory](pintos_3.html#SEC39)) while handling a system call. Just as user processes may access pages whose content is currently in a file or in swap space, so can they pass addresses that refer to such non-resident pages to system calls. Moreover, unless your kernel takes measures to prevent this, a page may be evicted from its frame even while it is being accessed by kernel code. If kernel code accesses such non-resident user pages, a page fault will result.
+You will need to adapt your code to access user memory (see section [3.1.5 Accessing User Memory](pintos_3.md#SEC39)) while handling a system call. Just as user processes may access pages whose content is currently in a file or in swap space, so can they pass addresses that refer to such non-resident pages to system calls. Moreover, unless your kernel takes measures to prevent this, a page may be evicted from its frame even while it is being accessed by kernel code. If kernel code accesses such non-resident user pages, a page fault will result.
 
 **Exercise 3.4**
 
@@ -374,7 +373,7 @@ Submission Instruction
 **Note**
 
 We will collect your solution automatically through GitHub by taking a snapshot by the deadline. Thus, be sure to commit your changes and do a `git push` to GitHub, especially in the last few minutes! If you are developing in a specific branch, in the end don't forget to merge changes in the branch to the `master` branch.
-If you decide to use the late hour tokens, by the deadline send an email to cs318-staff@cs.jhu.edu with the subject `[Late Request]: $GitHub_Repo_Name$` (empty content is fine) so we won't be collecting and grading your solution immediately. When you finish, send another email to cs318-staff@cs.jhu.edu with the subject `[Late Finish]: $GitHub_Repo_Name$`.
+If you decide to use the late hour tokens, by the deadline send an email to bressoud@denison.edu with the subject `[Late Request]: $GitHub_Repo_Name$` (empty content is fine) so we won't be collecting and grading your solution immediately. When you finish, send another email to bressoud@denison.edu with the subject `[Late Finish]: $GitHub_Repo_Name$`.
 
 * * *
 
@@ -390,7 +389,7 @@ This summary is relative to the Pintos base code, but the reference solution for
 The reference solution represents just one possible solution. Many other solutions are also possible and many of those differ greatly from the reference solution. Some excellent solutions may not modify all the files modified by the reference solution, and some may modify files not modified by the reference solution.
 
  
-
+```
 Makefile.build       |    4
 devices/timer.c      |   42 ++
 threads/init.c       |    5
@@ -409,7 +408,7 @@ vm/page.h            |   50 ++
 vm/swap.c            |   85 ++++
 vm/swap.h            |   11
 17 files changed, 1532 insertions(+), 104 deletions(-)
-
+```
 **Do we need a working Project 2 to implement Project 3?**
 
 Yes.
