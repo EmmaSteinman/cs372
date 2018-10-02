@@ -82,8 +82,6 @@ You'll need a way to copy files in and out of the simulated file system. The `pi
 Incidentally, these commands work by passing special commands `extract` and `append` on the kernel's command line and copying to and from a special simulated "scratch" partition. If you're very curious, you can look at the `pintos` script as well as `filesys/fsutil.c` to learn the implementation details.
 
 Here's a summary of how to create a disk with a file system partition, format the file system, copy the `echo` program into the new disk, and then run `echo`, passing argument `x`. (Argument passing won't work until you implemented it.) It assumes that you've already built the examples in examples and that the current directory is userprog/build:
-
- 
 ```
 pintos-mkdisk filesys.dsk --filesys-size=2
 pintos -- -f -q
@@ -91,15 +89,10 @@ pintos -p ../../examples/echo -a echo -- -q
 pintos -- -q run 'echo x'
 ```
 The three final steps can actually be combined into a single command:
-
- 
 ```
 pintos-mkdisk filesys.dsk --filesys-size=2
 pintos -p ../../examples/echo -a echo -- -f -q run 'echo x'
 ```
-If you don't want to keep the file system disk around for later use or inspection, you can even combine all four steps into a single command. The `--filesys-size=n` option creates a temporary file system partition approximately n megabytes in size just for the duration of the `pintos` run. The Pintos automatic test suite makes extensive use of this syntax:
-
- 
 ```
 pintos --filesys-size=2 -p ../../examples/echo -a echo -- -f -q run 'echo x'
 ```
@@ -468,7 +461,7 @@ userprog/syscall.h   |    1
 
 - How can I disassemble user programs?
 
-    The `objdump` (80x86) or `i386-elf-objdump` (SPARC) utility can disassemble entire user programs or object files. Invoke it as `objdump -d file`. You can use GDB's `disassemble` command to disassemble individual functions (see section [E.5 GDB](pintos_10.html#SEC151)).
+    The `objdump` (80x86) or `i386-elf-objdump` (SPARC) utility can disassemble entire user programs or object files. Invoke it as `objdump -d file`. You can use GDB's `disassemble` command to disassemble individual functions (see section [E.5 GDB](pintos_10.md)).
 
 - Why do many C include files not work in Pintos programs?
 - Can I use libfoo in my Pintos programs?
