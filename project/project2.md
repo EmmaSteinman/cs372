@@ -1,15 +1,15 @@
 Project 2: User Programs
 ========================
 
-**Due:** Thursday 10/19 11:59 pm, Friday 10/20 11:59 pm
+**Due:** Wednesday 10/24 11:59 pm
 
-Now that you've worked with Pintos and are becoming familiar with its infrastructure and thread package, it's time to start working on the parts of the system that allow running user programs. The base code already supports loading and running user programs, but no I/O or interactivity is possible. In this project, you will enable programs to interact with the OS via system calls.
+Now that you've worked with Pintos and are becoming familiar with its infrastructure and thread package, it's time to start working on the parts of the system that allow running user programs. The base code already supports loading and running user programs, but no I/O or interactivity is possible. In this project, you will enable programs to interact with the OS via *system calls*.
 
-You will be working out of the userprog directory for this assignment, but you will also be interacting with almost every other part of Pintos. We will describe the relevant parts below.
+You will be working out of the `userprog` directory for this assignment, but you will also be interacting with almost every other part of Pintos. We will describe the relevant parts below.
 
 You can build project 2 on top of your project 1 submission or you can start fresh. No code from project 1 is required for this assignment. The "alarm clock" functionality may be useful in projects 3 and 4, but it is not strictly required.
 
-You might find it useful to go back and reread how to run the tests (see section [1.2.1 Testing](pintos_1.html#SEC8)).
+You might find it useful to go back and reread how to run the tests (see section [1.2.1 Testing](pintos_1.md#SEC8)).
 
 * * *
 
@@ -18,7 +18,7 @@ Background
 
 Up to now, all of the code you have run under Pintos has been part of the operating system kernel. This means, for example, that all the test code from the last assignment ran as part of the kernel, with full access to privileged parts of the system. Once we start running user programs on top of the operating system, this is no longer true. This project deals with the consequences.
 
-We allow more than one process to run at a time. Each process has one thread (multithreaded processes are not supported). User programs are written under the illusion that they have the entire machine. This means that when you load and run multiple processes at a time, you must manage memory, scheduling, and other state correctly to maintain this illusion.
+We allow more than one process to run at a time. Each process has exactly one thread (multithreaded processes are not supported). User programs are written under the illusion that they have the entire machine. This means that when you load and run multiple processes at a time, you must manage memory, scheduling, and other state correctly to maintain this illusion.
 
 In the previous project, we compiled our test code directly into your kernel, so we had to require certain specific function interfaces within the kernel. From now on, we will test your operating system by running user programs. This gives you much greater freedom. You must make sure that the user program interface meets the specifications described here, but given that constraint you are free to restructure or rewrite kernel code however you wish.
 
@@ -28,47 +28,30 @@ In the previous project, we compiled our test code directly into your kernel, so
 
 The easiest way to get an overview of the programming you will be doing is to simply go over each part you'll be working with. In userprog, you'll find a small number of files, but here is where the bulk of your work will be:
 
-process.c
-
-process.h
-
-Loads ELF binaries and starts processes.
-
-pagedir.c
-
-pagedir.h
-
-A simple manager for 80x86 hardware page tables. Although you probably won't want to modify this code for this project, you may want to call some of its functions. See section [4.1.2.3 Page Tables](project3.html#SEC59), for more information.
-
-syscall.c
-
-syscall.h
-
-Whenever a user process wants to access some kernel functionality, it invokes a system call. This is a skeleton system call handler. Currently, it just prints a message and terminates the user process. In part 2 of this project you will add code to do everything else needed by system calls.
-
-exception.c
-
-exception.h
-
-When a user process performs a privileged or prohibited operation, it traps into the kernel as an "exception" or "fault."[(3)](pintos_fot.html#FOOT3) These files handle exceptions. Currently all exceptions simply print a message and terminate the process. Some, but not all, solutions to project 2 require modifying `page_fault()` in this file.
-
-gdt.c
-
-gdt.h
-
-The 80x86 is a segmented architecture. The Global Descriptor Table (GDT) is a table that describes the segments in use. These files set up the GDT. You should not need to modify these files for any of the projects. You can read the code if you're interested in how the GDT works.
-
-tss.c
-
-tss.h
-
-The Task-State Segment (TSS) is used for 80x86 architectural task switching. Pintos uses the TSS only for switching stacks when a user process enters an interrupt handler, as does Linux. You should not need to modify these files for any of the projects. You can read the code if you're interested in how the TSS works.
+- `process.c`
+- `process.h`
+    Loads ELF binaries and starts processes.
+- `pagedir.c`
+- `pagedir.h`
+    A simple manager for 80x86 hardware page tables. Although you probably won't want to modify this code for this project, you may want to call some of its functions. See section [4.1.2.3 Page Tables](project3.md#SEC59), for more information.
+- `syscall.c`
+- `syscall.h`
+   Whenever a user process wants to access some kernel functionality, it invokes a system call. This is a skeleton system call handler. Currently, it just prints a message and terminates the user process. In part 2 of this project you will add code to do everything else needed by system calls.
+- `exception.c`
+- `exception.h`
+    When a user process performs a privileged or prohibited operation, it traps into the kernel as an "exception" or "fault."  These files handle exceptions. Currently all exceptions simply print a message and terminate the process. Some, but not all, solutions to project 2 require modifying `page_fault()` in this file.
+- `gdt.c`
+- `gdt.h`
+    The 80x86 is a segmented architecture. The Global Descriptor Table (GDT) is a table that describes the segments in use. These files set up the GDT. You should not need to modify these files for any of the projects. You can read the code if you're interested in how the GDT works.
+- `tss.c`
+- `tss.h`
+    The Task-State Segment (TSS) is used for 80x86 architectural task switching. Pintos uses the TSS only for switching stacks when a user process enters an interrupt handler, as does Linux. You should not need to modify these files for any of the projects. You can read the code if you're interested in how the TSS works.
 
 * * *
 
 ### Using the File System
 
-You will need to interface to the file system code for this project, because user programs are loaded from the file system and many of the system calls you must implement deal with the file system. However, the focus of this project is not the file system, so we have provided a simple but complete file system in the filesys directory. You will want to look over the filesys.h and file.h interfaces to understand how to use the file system, and especially its many limitations.
+You will need to interface to the file system code for this project, because user programs are loaded from the file system and many of the system calls you must implement deal with the file system. However, the focus of this project is not the file system, so we have provided a simple but complete file system in the `filesys` directory. You will want to look over the `filesys.h` and `file.h` interfaces to understand how to use the file system, and especially its many limitations.
 
 There is no need to modify the file system code for this project, and so we recommend that you do not. Working on the file system is likely to distract you from this project's focus.
 
@@ -88,61 +71,63 @@ Proper use of the file system routines now will make life much easier for projec
 
 One important feature is included:
 
-*   Unix-like semantics for `filesys_remove()` are implemented. That is, if a file is open when it is removed, its blocks are not deallocated and it may still be accessed by any threads that have it open, until the last one closes it. See [Removing an Open File](project2.html#Removing_an_Open_File), for more information.
+*   Unix-like semantics for `filesys_remove()` *are* implemented. That is, if a file is open when it is removed, its blocks are not deallocated and it may still be accessed by any threads that have it open, until the last one closes it. See [Removing an Open File](project2.md#Removing_an_Open_File), for more information.
 
+#### Creating and formatting a disk
 You need to be able to create a simulated disk with a file system partition. The `pintos-mkdisk` program provides this functionality. From the userprog/build directory, execute `pintos-mkdisk filesys.dsk --filesys-size=2`. This command creates a simulated disk named filesys.dsk that contains a 2 MB Pintos file system partition. Then format the file system partition by passing \-f -q on the kernel's command line: `pintos -- -f -q`. The \-f option causes the file system to be formatted, and \-q causes Pintos to exit as soon as the format is done.
 
-You'll need a way to copy files in and out of the simulated file system. The `pintos` \-p ("put") and \-g ("get") options do this. To copy file into the Pintos file system, use the command pintos -p file -- -q. (The \-- is needed because \-p is for the `pintos` script, not for the simulated kernel.) To copy it to the Pintos file system under the name newname, add \-a newname: pintos -p file -a newname -- -q. The commands for copying files out of a VM are similar, but substitute \-g for \-p.
+#### Copying files onto a disk
+You'll need a way to copy files in and out of the simulated file system. The `pintos` \-p ("put") and \-g ("get") options do this. To copy file into the Pintos file system, use the command `pintos -p file -- -q`. (The \-- is needed because \-p is for the `pintos` script, not for the simulated kernel.) To copy it to the Pintos file system under the name `newname`, add \-a `newname`: `pintos -p file -a newname -- -q`. The commands for copying files out of a simulated disk to the local filesystem are similar, but substitute \-g for \-p.
 
-Incidentally, these commands work by passing special commands `extract` and `append` on the kernel's command line and copying to and from a special simulated "scratch" partition. If you're very curious, you can look at the `pintos` script as well as filesys/fsutil.c to learn the implementation details.
+Incidentally, these commands work by passing special commands `extract` and `append` on the kernel's command line and copying to and from a special simulated "scratch" partition. If you're very curious, you can look at the `pintos` script as well as `filesys/fsutil.c` to learn the implementation details.
 
 Here's a summary of how to create a disk with a file system partition, format the file system, copy the `echo` program into the new disk, and then run `echo`, passing argument `x`. (Argument passing won't work until you implemented it.) It assumes that you've already built the examples in examples and that the current directory is userprog/build:
 
  
-
+```
 pintos-mkdisk filesys.dsk --filesys-size=2
 pintos -- -f -q
 pintos -p ../../examples/echo -a echo -- -q
 pintos -- -q run 'echo x'
-
+```
 The three final steps can actually be combined into a single command:
 
  
-
+```
 pintos-mkdisk filesys.dsk --filesys-size=2
 pintos -p ../../examples/echo -a echo -- -f -q run 'echo x'
-
+```
 If you don't want to keep the file system disk around for later use or inspection, you can even combine all four steps into a single command. The `--filesys-size=n` option creates a temporary file system partition approximately n megabytes in size just for the duration of the `pintos` run. The Pintos automatic test suite makes extensive use of this syntax:
 
  
-
+```
 pintos --filesys-size=2 -p ../../examples/echo -a echo -- -f -q run 'echo x'
-
+```
 You can delete a file from the Pintos file system using the `rm file` kernel action, e.g. `pintos -q rm file`. Also, `ls` lists the files in the file system and `cat file` prints a file's contents to the display.
 
 * * *
 
 ### How User Programs Work
 
-Pintos can run normal C programs, as long as they fit into memory and use only the system calls you implement. Notably, `malloc()` cannot be implemented because none of the system calls required for this project allow for memory allocation. Pintos also can't run programs that use floating point operations, since the kernel doesn't save and restore the processor's floating-point unit when switching threads.
+Pintos can run normal C programs, as long as they fit into memory and use only the system calls you implement. Notably, `malloc()` cannot be implemented because none of the system calls required for this project allow for dynamic memory allocation. Pintos also can't run programs that use floating point operations, since the kernel doesn't save and restore the processor's floating-point unit when switching threads.
 
-The src/examples directory contains a few sample user programs. The Makefile in this directory compiles the provided examples, and you can edit it to compile your own programs as well. Some of the example programs will only work once projects 3 or 4 have been implemented.
+The `src/examples` directory contains a few sample user programs. The Makefile in this directory compiles the provided examples, and you can edit it to compile your own programs as well. Note that some of the example programs will only work once projects 3 or 4 have been implemented.
 
-Pintos can load _ELF_ executables with the loader provided for you in userprog/process.c. ELF is a file format used by Linux, Solaris, and many other operating systems for object files, shared libraries, and executables. You can actually use any compiler and linker that output 80x86 ELF executables to produce programs for Pintos. (We've provided compilers and linkers that should do just fine.)
+Pintos can load _ELF_ executables with the loader provided for you in `userprog/process.c`. ELF is a file format used by Linux, Solaris, and many other operating systems for object files, shared libraries, and executables. You can actually use any compiler and linker that output 80x86 ELF executables to produce programs for Pintos. (We've provided compilers and linkers that should do just fine.)
 
-You should realize immediately that, until you copy a test program to the simulated file system, Pintos will be unable to do useful work. You won't be able to do interesting things until you copy a variety of programs to the file system. You might want to create a clean reference file system disk and copy that over whenever you trash your filesys.dsk beyond a useful state, which may happen occasionally while debugging.
+You should realize immediately that, until you copy a test program to the simulated file system, Pintos will be unable to do useful work. You won't be able to do interesting things until you copy a variety of programs to the file system. You might want to create a clean reference file system disk and copy that over whenever you trash your `filesys.dsk` beyond a useful state, which may happen occasionally while debugging.
 
 * * *
 
 ### Virtual Memory Layout
 
-Virtual memory in Pintos is divided into two regions: user virtual memory and kernel virtual memory. User virtual memory ranges from virtual address 0 up to `PHYS_BASE`, which is defined in threads/vaddr.h and defaults to 0xc0000000 (3 GB). Kernel virtual memory occupies the rest of the virtual address space, from `PHYS_BASE` up to 4 GB.
+Virtual memory in Pintos is divided into two regions: user virtual memory and kernel virtual memory. User virtual memory ranges from virtual address 0 up to `PHYS_BASE`, which is defined in `threads/vaddr.h` and defaults to `0xc0000000` (3 GB). Kernel virtual memory occupies the rest of the virtual address space, from `PHYS_BASE` up to 4 GB.
 
-User virtual memory is per-process. When the kernel switches from one process to another, it also switches user virtual address spaces by changing the processor's page directory base register (see `pagedir_activate()` in userprog/pagedir.c). `struct thread` contains a pointer to a process's page table.
+User virtual memory is per-process. When the kernel switches from one process to another, it also switches user virtual address spaces by changing the processor's page directory base register (see `pagedir_activate()` in `userprog/pagedir.c`). `struct thread` contains a pointer to a process's page table.
 
 Kernel virtual memory is global. It is always mapped the same way, regardless of what user process or kernel thread is running. In Pintos, kernel virtual memory is mapped one-to-one to physical memory, starting at `PHYS_BASE`. That is, virtual address `PHYS_BASE` accesses physical address 0, virtual address `PHYS_BASE` + 0x1234 accesses physical address 0x1234, and so on up to the size of the machine's physical memory.
 
-A user program can only access its own user virtual memory. An attempt to access kernel virtual memory causes a page fault, handled by `page_fault()` in userprog/exception.c, and the process will be terminated. Kernel threads can access both kernel virtual memory and, if a user process is running, the user virtual memory of the running process. However, even in the kernel, an attempt to access memory at an unmapped user virtual address will cause a page fault.
+A user program can only access its own user virtual memory. An attempt to access kernel virtual memory causes a page fault, handled by `page_fault()` in `userprog/exception.c`, and the process will be terminated. Kernel threads can access both kernel virtual memory and, if a user process is running, the user virtual memory of the running process. However, even in the kernel, an attempt to access memory at an **unmapped** user virtual address will cause a page fault.
 
 * * *
 
@@ -150,41 +135,40 @@ A user program can only access its own user virtual memory. An attempt to access
 
 Conceptually, each process is free to lay out its own user virtual memory however it chooses. In practice, user virtual memory is laid out like this:
 
- 
-
-PHYS\_BASE +----------------------------------+
-       |            user stack            |
-       |                 |                |
-       |                 |                |
-       |                 V                |
-       |          grows downward          |
-       |                                  |
-       |                                  |
-       |                                  |
-       |                                  |
-       |           grows upward           |
-       |                 ^                |
-       |                 |                |
-       |                 |                |
-       +----------------------------------+
-       | uninitialized data segment (BSS) |
-       +----------------------------------+
-       |     initialized data segment     |
-       +----------------------------------+
-       |           code segment           |
+```
+ PHYS_BASE +----------------------------------+
+           |            user stack            |
+           |                 |                |
+           |                 |                |
+           |                 V                |
+           |          grows downward          |
+           |                                  |
+           |                                  |
+           |                                  |
+           |                                  |
+           |           grows upward           |
+           |                 ^                |
+           |                 |                |
+           |                 |                |
+           +----------------------------------+
+           | uninitialized data segment (BSS) |
+           +----------------------------------+
+           |     initialized data segment     |
+           +----------------------------------+
+           |           code segment           |
 0x08048000 +----------------------------------+
-       |                                  |
-       |                                  |
-       |                                  |
-       |                                  |
-       |                                  |
-     0 +----------------------------------+
-
+           |                                  |
+           |                                  |
+           |                                  |
+           |                                  |
+           |                                  |
+         0 +----------------------------------+
+```
 In this project, the user stack is fixed in size, but in project 3 it will be allowed to grow. Traditionally, the size of the uninitialized data segment can be adjusted with a system call, but you will not have to implement this.
 
-The code segment in Pintos starts at user virtual address 0x08048000, approximately 128 MB from the bottom of the address space. This value is specified in \[ [SysV-i386](pintos_13.html#SysV-i386)\] and has no deep significance.
+The code segment in Pintos starts at user virtual address `0x08048000`, approximately 128 MB from the bottom of the address space.
 
-The linker sets the layout of a user program in memory, as directed by a "linker script" that tells it the names and locations of the various program segments. You can learn more about linker scripts by reading the "Scripts" chapter in the linker manual, accessible via info ld.
+The linker sets the layout of a user program in memory, as directed by a "linker script" that tells it the names and locations of the various program segments. You can learn more about linker scripts by reading the "Scripts" chapter in the linker manual, accessible via `info ld`.
 
 To view the layout of a particular executable, run `objdump` (80x86) or `i386-elf-objdump` (SPARC) with the \-p option.
 
@@ -195,29 +179,25 @@ Suggested Order of Implementation
 
 We suggest first implementing the following, which can happen in parallel:
 
-*   Argument passing (see section [Argument Passing](project2.html#SEC44)). Every user program will page fault immediately until argument passing is implemented.
+*   Argument passing (see section [Argument Passing](project2.md#SEC44)). Every user program will page fault immediately until argument passing is implemented.
 
 For now, you may simply wish to change
-
- 
-
-\*esp = PHYS\_BASE;
-
+```
+*esp = PHYS_BASE;
+```
 to
-
- 
-
-\*esp = PHYS\_BASE - 12;
-
-in `setup_stack()`. That will work for any test program that doesn't examine its arguments, although its name will be printed as `(null)`.
+```
+*esp = PHYS_BASE - 12;
+```
+in `setup_stack()`. That will work for any test program that **does not** examine its arguments, although its name will be printed as `(null)`.
 
 Until you implement argument passing, you should only run programs without passing command-line arguments. Attempting to pass arguments to a program will include those arguments in the name of the program, which will probably fail.
 
-*   User memory access (see section [Accessing User Memory](project2.html#SEC39)). All system calls need to read user memory. Few system calls need to write to user memory.
+*   User memory access (see section [Accessing User Memory](project2.md#SEC39)). *All* system calls need to read user memory. Few system calls need to write to user memory.
 
-*   System call infrastructure (see section [System Calls](project2.html#SEC45)). Implement enough code to read the system call number from the user stack and dispatch to a handler based on it.
+*   System call infrastructure (see section [System Calls](project2.md#SEC45)). Implement enough code to read the system call number from the user stack and dispatch to a handler based on it.
 
-*   The `exit` system call. Every user program that finishes in the normal way calls `exit`. Even a program that returns from `main()` calls `exit` indirectly (see `_start()` in lib/user/entry.c).
+*   The `exit` system call. Every user program that finishes in the normal way calls `exit`. Even a program that returns from `main()` calls `exit` indirectly (see `_start()` in `lib/user/entry.c`).
 
 *   The `write` system call for writing to fd 1, the system console. All of our test programs write to the console (the user process version of `printf()` is implemented this way), so they will all malfunction until `write` is available.
 
@@ -225,101 +205,106 @@ Until you implement argument passing, you should only run programs without passi
 
 After the above are implemented, user processes should work minimally. At the very least, they can write to the console and exit correctly. You can then refine your implementation so that some of the tests start to pass.
 
-* * *
 
 Requirements
 ------------
 
-* * *
 
 ### 0\. Design Document
 
-Before you turn in your project, you must copy [the project 2 design document template](userprog.tmpl) into your source tree under the name pintos/src/userprog/DESIGNDOC and fill it in. We recommend that you read the design document template before you start working on the project. See section [D. Project Documentation](pintos_9.html#SEC142), for a sample design document that goes along with a fictitious project.
+Before you turn in your project, you must copy [the project 2 design document template](lab2doc.md) into your source tree under the name pintos/src/userprog/DESIGNDOC.md and use it as the basis for your project documentation. We recommend that you read the design document template before you start working on the project.
 
-* * *
 
 ### 1\. Process Termination Messages
 
 Whenever a user process terminates, because it called `exit` or for any other reason, print the process's name and exit code, formatted as if printed by `printf ("%s: exit(%d)\n", ...);`. The name printed should be the full name passed to `process_execute()`, omitting command-line arguments. Do not print these messages when a kernel thread that is not a user process terminates, or when the `halt` system call is invoked. The message is optional when a process fails to load.
 
+*******
 **Exercise 2.1**
 
 Print exit message formatted as `"%s: exit(%d)\n"` with process name and exit status when process is terminated.
-
+********
 Aside from this, don't print any other messages that Pintos as provided doesn't already print. You may find extra messages useful during debugging, but they will confuse the grading scripts and thus lower your score.
 
-* * *
 
+<a name=SEC44></a>
 ### 2\. Argument Passing
 
 Currently, `process_execute()` does not support passing arguments to new processes. Implement this functionality, by extending `process_execute()` so that instead of simply taking a program file name as its argument, it divides it into words at spaces. The first word is the program name, the second word is the first argument, and so on. That is, `process_execute("grep foo bar")` should run `grep` passing two arguments `foo` and `bar`.
 
+*********
 **Exercise 2.2**
 
 Add argument passing support for `process_execute()`.
+*********
+Within a command line, multiple spaces are equivalent to a single space. You can impose a reasonable limit on the length of the command line arguments. For example, you could limit the arguments to those that will fit in a single page (4 kB). (There is an **unrelated** limit of 128 bytes on command-line arguments that the `pintos` utility can pass to the kernel.)
 
-Within a command line, multiple spaces are equivalent to a single space, so that `process_execute("grep foo bar")` is equivalent to our original example. You can impose a reasonable limit on the length of the command line arguments. For example, you could limit the arguments to those that will fit in a single page (4 kB). (There is an unrelated limit of 128 bytes on command-line arguments that the `pintos` utility can pass to the kernel.)
+You can parse argument strings any way you like. If you're lost, look at `strtok_r()`, prototyped in `lib/string.h` and implemented with thorough comments in `lib/string.c`. You can find more about it by looking at the man page (run `man strtok_r` at the prompt).
 
-You can parse argument strings any way you like. If you're lost, look at `strtok_r()`, prototyped in lib/string.h and implemented with thorough comments in lib/string.c. You can find more about it by looking at the man page (run `man strtok_r` at the prompt).
-
-See section [Program Startup Details](project2.html#SEC51), for information on exactly how you need to set up the stack.
+See section [Program Startup Details](project2.md#SEC51), for information on exactly how you need to set up the stack.
 
 * * *
 
+<a name=SEC45></a>
 ### 3\. Accessing User Memory
 
 As part of a system call, the kernel must often access memory through pointers provided by a user program. The kernel must be very careful about doing so, because the user can pass a null pointer, a pointer to unmapped virtual memory, or a pointer to kernel virtual address space (above `PHYS_BASE`). All of these types of invalid pointers must be rejected without harm to the kernel or other running processes, by terminating the offending process and freeing its resources.
 
+**************************
 **Exercise 2.3**
 
 Support reading from and writing to user memory for system calls.
+***************************
+There are at least two reasonable ways to do this correctly. The first method is to verify the validity of a user-provided pointer, then dereference it. If you choose this route, you'll want to look at the functions in `userprog/pagedir.c` and in `threads/vaddr.h`. This is the simplest way to handle user memory access.
 
-There are at least two reasonable ways to do this correctly. The first method is to verify the validity of a user-provided pointer, then dereference it. If you choose this route, you'll want to look at the functions in userprog/pagedir.c and in threads/vaddr.h. This is the simplest way to handle user memory access.
-
-The second method is to check only that a user pointer points below `PHYS_BASE`, then dereference it. An invalid user pointer will cause a "page fault" that you can handle by modifying the code for `page_fault()` in userprog/exception.c. This technique is normally faster because it takes advantage of the processor's MMU, so it tends to be used in real kernels (including Linux).
+The second method is to check only that a user pointer points below `PHYS_BASE`, then dereference it. An invalid user pointer will cause a "page fault" that you can handle by modifying the code for `page_fault()` in `userprog/exception.c`. This technique is normally faster because it takes advantage of the processor's MMU, so it tends to be used in real kernels (including Linux).
 
 In either case, you need to make sure not to "leak" resources. For example, suppose that your system call has acquired a lock or allocated memory with `malloc()`. If you encounter an invalid user pointer afterward, you must still be sure to release the lock or free the page of memory. If you choose to verify user pointers before dereferencing them, this should be straightforward. It's more difficult to handle if an invalid pointer causes a page fault, because there's no way to return an error code from a memory access. Therefore, for those who want to try the latter technique, we'll provide a little bit of helpful code:
 
  
-
-/\* Reads a byte at user virtual address UADDR.
-UADDR must be below PHYS\_BASE.
-Returns the byte value if successful, -1 if a segfault
-occurred. \*/
+```C
+/* Reads a byte at user virtual address UADDR.
+   UADDR must be below PHYS_BASE.
+   Returns the byte value if successful, -1 if a segfault
+   occurred. */
 static int
-get\_user (const uint8\_t \*uaddr)
+get_user (const uint8_t *uaddr)
 {
-int result;
-asm ("movl $1f, %0; movzbl %1, %0; 1:"
- : "=&a" (result) : "m" (\*uaddr));
-return result;
+  int result;
+  asm ("movl $1f, %0; movzbl %1, %0; 1:"
+       : "=&a" (result) : "m" (*uaddr));
+  return result;
 }
 
-/\* Writes BYTE to user address UDST.
-UDST must be below PHYS\_BASE.
-Returns true if successful, false if a segfault occurred. \*/
+/* Writes BYTE to user address UDST.
+   UDST must be below PHYS\_BASE.
+   Returns true if successful, false if a segfault occurred. */
 static bool
-put\_user (uint8\_t \*udst, uint8\_t byte)
+put_user (uint8_t *udst, uint8_t byte)
 {
-int error\_code;
-asm ("movl $1f, %0; movb %b2, %1; 1:"
- : "=&a" (error\_code), "=m" (\*udst) : "q" (byte));
-return error\_code != -1;
+  int error_code;
+  asm ("movl $1f, %0; movb %b2, %1; 1:"
+       : "=&a" (error_code), "=m" (*udst) : "q" (byte));
+  return error_code != -1;
 }
+```
+Each of these functions assumes that the user address has already been verified to be below `PHYS_BASE`. They also assume that you've modified `page_fault()` so that a page fault in the kernel merely sets `eax` to `0xffffffff` and copies its former value into `eip`.
 
-Each of these functions assumes that the user address has already been verified to be below `PHYS_BASE`. They also assume that you've modified `page_fault()` so that a page fault in the kernel merely sets `eax` to 0xffffffff and copies its former value into `eip`.
-
-* * *
-
+<a name=SEC44></a>
 ### 4\. System Calls
 
+-------------
 **Exercise 2.4.1**
 
-Implement the system call handler in userprog/syscall.c. The skeleton implementation we provide "handles" system calls by terminating the process. It will need to retrieve the system call number, then any system call arguments, and carry out appropriate actions.
+Implement the system call handler in `userprog/syscall.c`. The skeleton implementation we provide "handles" system calls by terminating the process. It will need to retrieve the system call number, then any system call arguments, and carry out appropriate actions.
+
+-----------------
 
 **Exercise 2.4.2**
 
-Implement the following system calls. The prototypes listed are those seen by a user program that includes lib/user/syscall.h. (This header, and all others in lib/user, are for use by user programs only.) System call numbers for each system call are defined in lib/syscall-nr.h:
+Implement the following system calls. The prototypes listed are those seen by a user program that includes `lib/user/syscall.h`. (This header, and all others in `lib/user`, are for use by user programs only.) System call numbers for each system call are defined in `lib/syscall-nr.h`:
+
+-----------------------
 
 System Call: void **halt** (void)
 
@@ -343,13 +328,13 @@ If pid is still alive, waits until it terminates. Then, returns the status that 
 
 *   pid does not refer to a direct child of the calling process. pid is a direct child of the calling process if and only if the calling process received pid as a return value from a successful call to `exec`.
 
-Note that children are not inherited: if A spawns child B and B spawns child process C, then A cannot wait for C, even if B is dead. A call to `wait(C)` by process A must fail. Similarly, orphaned processes are not assigned to a new parent if their parent process exits before they do.
+    Note that children are not inherited: if A spawns child B and B spawns child process C, then A cannot wait for C, even if B is dead. A call to `wait(C)` by process A must fail. Similarly, orphaned processes are not assigned to a new parent if their parent process exits before they do.
 
 *   The process that calls `wait` has already called `wait` on pid. That is, a process may wait for any given child at most once.
 
-Processes may spawn any number of children, wait for them in any order, and may even exit without having waited for some or all of their children. Your design should consider all the ways in which waits can occur. All of a process's resources, including its `struct thread`, must be freed whether its parent ever waits for it or not, and regardless of whether the child exits before or after its parent.
+    Processes may spawn any number of children, wait for them in any order, and may even exit without having waited for some or all of their children. Your design should consider all the ways in which waits can occur. All of a process's resources, including its `struct thread`, must be freed whether its parent ever waits for it or not, and regardless of whether the child exits before or after its parent.
 
-You must ensure that Pintos does not terminate until the initial process exits. The supplied Pintos code tries to do this by calling `process_wait()` (in userprog/process.c) from `main()` (in threads/init.c). We suggest that you implement `process_wait()` according to the comment at the top of the function and then implement the `wait` system call in terms of `process_wait()`.
+You must ensure that Pintos does not terminate until the initial process exits. The supplied Pintos code tries to do this by calling `process_wait()` (in `userprog/process.c`) from `main()` (in `threads/init.c`). We suggest that you implement `process_wait()` according to the comment at the top of the function and then implement the `wait` system call in terms of `process_wait()`.
 
 Implementing this system call requires considerably more work than any of the rest.
 
@@ -359,7 +344,7 @@ Creates a new file called file initially initial\_size bytes in size. Returns tr
 
 System Call: bool **remove** (const char \*file)
 
-Deletes the file called file. Returns true if successful, false otherwise. A file may be removed regardless of whether it is open or closed, and removing an open file does not close it. See [Removing an Open File](project2.html#Removing an Open File), for details.
+Deletes the file called file. Returns true if successful, false otherwise. A file may be removed regardless of whether it is open or closed, and removing an open file does not close it. See [Removing an Open File](project2.md#Removing an Open File), for details.
 
 System Call: int **open** (const char \*file)
 
@@ -367,7 +352,7 @@ Opens the file called file. Returns a nonnegative integer handle called a "file 
 
 File descriptors numbered 0 and 1 are reserved for the console: fd 0 (`STDIN_FILENO`) is standard input, fd 1 (`STDOUT_FILENO`) is standard output. The `open` system call will never return either of these file descriptors, which are valid as system call arguments only as explicitly described below.
 
-Each process has an independent set of file descriptors. File descriptors are not inherited by child processes.
+Each process has an **independent** set of file descriptors. File descriptors are not inherited by child processes.
 
 When a single file is opened more than once, whether by a single process or different processes, each `open` returns a new file descriptor. Different file descriptors for a single file are closed independently in separate calls to `close` and they do not share a file position.
 
@@ -403,7 +388,7 @@ Closes file descriptor fd. Exiting or terminating a process implicitly closes al
 
 The file defines other syscalls. Ignore them for now. You will implement some of them in project 3 and the rest in project 4, so be sure to design your system with extensibility in mind.
 
-To implement syscalls, you need to provide ways to read and write data in user virtual address space. You need this ability before you can even obtain the system call number, because the system call number is on the user's stack in the user's virtual address space. This can be a bit tricky: what if the user provides an invalid pointer, a pointer into kernel memory, or a block partially in one of those regions? You should handle these cases by terminating the user process. We recommend writing and testing this code before implementing any other system call functionality. See section [3.1.5 Accessing User Memory](project2.html#SEC39), for more information.
+To implement syscalls, you need to provide ways to read and write data in user virtual address space. You need this ability before you can even obtain the system call number, because the system call number is on the user's stack in the user's virtual address space. This can be a bit tricky: what if the user provides an invalid pointer, a pointer into kernel memory, or a block partially in one of those regions? You should handle these cases by terminating the user process. We recommend writing and testing this code before implementing any other system call functionality. See section [3.1.5 Accessing User Memory](project2.md#SEC39), for more information.
 
 You must synchronize system calls so that any number of user processes can make them at once. In particular, it is not safe to call into the file system code provided in the filesys directory from multiple threads at once. Your system call implementation must treat the file system code as a critical section. Don't forget that `process_execute()` also accesses files. For now, we recommend against modifying code in the filesys directory.
 
@@ -413,7 +398,7 @@ When you're done with this part, and forevermore, Pintos should be bulletproof. 
 
 If a system call is passed an invalid argument, acceptable options include returning an error value (for those calls that return a value), returning an undefined value, or terminating the process.
 
-See section [System Call Details](project2.html#SEC52), for details on how system calls work.
+See section [System Call Details](project2.md#SEC52), for details on how system calls work.
 
 * * *
 
@@ -432,21 +417,20 @@ Submission Instruction
 
 **Note**
 
-We will collect your solution automatically through GitHub by taking a snapshot by the deadline. Thus, be sure to commit your changes and do a `git push` to GitHub, especially in the last few minutes! If you are developing in a specific branch, in the end don't forget to merge changes in the branch to the `master` branch. If you decide to use the late hour tokens, by the deadline send an email to cs318-staff@cs.jhu.edu with the subject "\[Late Request\]: $GitHub\_Repo\_Name$" (empty content is fine) so we won't be collecting and grading your solution immediately. When you finish (within the token limit), send another email to cs318-staff@cs.jhu.edu with the subject "\[Late Finish\]: $GitHub\_Repo\_Name$".
+We will collect your solution automatically through GitHub by taking a snapshot by the deadline. Thus, be sure to commit your changes and do a `git push` to GitHub, especially in the last few minutes! If you are developing in a specific branch, in the end don't forget to merge changes in the branch to the `master` branch. If you decide to use the late hour tokens, by the deadline send an email to bressoud@denison.edu with the subject "\[Late Request\]: $GitHub\_Repo\_Name$" (empty content is fine) so we won't be collecting and grading your solution immediately. When you finish (within the token limit), send another email to bressoud@denison.edu with the subject "\[Late Finish\]: $GitHub\_Repo\_Name$".
 
 * * *
 
 FAQ
 ---
 
-How much code will I need to write?
+- How much code will I need to write?
 
-Here's a summary of our reference solution, produced by the `diffstat` program. The final row gives total lines inserted and deleted; a changed line counts as both an insertion and a deletion.
+    Here's a summary of our reference solution, produced by the `diffstat` program. The final row gives total lines inserted and deleted; a changed line counts as both an insertion and a deletion.
 
-The reference solution represents just one possible solution. Many other solutions are also possible and many of those differ greatly from the reference solution. Some excellent solutions may not modify all the files modified by the reference solution, and some may modify files not modified by the reference solution.
+    The reference solution represents just one possible solution. Many other solutions are also possible and many of those differ greatly from the reference solution. Some excellent solutions may not modify all the files modified by the reference solution, and some may modify files not modified by the reference solution.
 
- 
-
+```
 threads/thread.c     |   13
 threads/thread.h     |   26 +
 userprog/exception.c |    8
@@ -454,111 +438,112 @@ userprog/process.c   |  247 ++++++++++++++--
 userprog/syscall.c   |  468 ++++++++++++++++++++++++++++++-
 userprog/syscall.h   |    1
 6 files changed, 725 insertions(+), 38 deletions(-)
+```
 
-The kernel always panics when I run `pintos -p file -- -q`.
+- The kernel always panics when I run `pintos -p file -- -q`.
 
-Did you format the file system (with pintos -f)?
+    Did you format the file system (with pintos -f)?
 
-Is your file name too long? The file system limits file names to 14 characters. A command like pintos -p ../../examples/echo -- -q will exceed the limit. Use pintos -p ../../examples/echo -a echo -- -q to put the file under the name echo instead.
+    Is your file name too long? The file system limits file names to 14 characters. A command like `pintos -p ../../examples/echo -- -q` will exceed the limit. Use `pintos -p ../../examples/echo -a echo -- -q` to put the file under the name echo instead.
 
-Is the file system full?
+    Is the file system full?
 
-Does the file system already contain 16 files? The base Pintos file system has a 16-file limit.
+    Does the file system already contain 16 files? The base Pintos file system has a 16-file limit.
 
-The file system may be so fragmented that there's not enough contiguous space for your file.
+    The file system may be so fragmented that there's not enough contiguous space for your file.
 
-When I run `pintos -p ../file --`, file isn't copied.
+- When I run `pintos -p ../file --`, file isn't copied.
 
-Files are written under the name you refer to them, by default, so in this case the file copied in would be named ../file. You probably want to run `pintos -p ../file -a file --` instead.
+    Files are written under the name you refer to them, by default, so in this case the file copied in would be named ../file. You probably want to run `pintos -p ../file -a file --` instead.
 
-You can list the files in your file system with `pintos -q ls`.
+    You can list the files in your file system with `pintos -q ls`.
 
-All my user programs die with page faults.
+- All my user programs die with page faults.
 
-This will happen if you haven't implemented argument passing (or haven't done so correctly). The basic C library for user programs tries to read argc and argv off the stack. If the stack isn't properly set up, this causes a page fault.
+    This will happen if you haven't implemented argument passing (or haven't done so correctly). The basic C library for user programs tries to read argc and argv off the stack. If the stack isn't properly set up, this causes a page fault.
 
-All my user programs die with `system call!`
+- All my user programs die with `system call!`
 
-You'll have to implement system calls before you see anything else. Every reasonable program tries to make at least one system call (`exit()`) and most programs make more than that. Notably, `printf()` invokes the `write` system call. The default system call handler just prints system call! and terminates the program. Until then, you can use `hex_dump()` to convince yourself that argument passing is implemented correctly (see section [Program Startup Details](project2.html#SEC51)).
+    You'll have to implement system calls before you see anything else. Every reasonable program tries to make at least one system call (`exit()`) and most programs make more than that. Notably, `printf()` invokes the `write` system call. The default system call handler just prints system call! and terminates the program. Until then, you can use `hex_dump()` to convince yourself that argument passing is implemented correctly (see section [Program Startup Details](project2.md#SEC51)).
 
-How can I disassemble user programs?
+- How can I disassemble user programs?
 
-The `objdump` (80x86) or `i386-elf-objdump` (SPARC) utility can disassemble entire user programs or object files. Invoke it as `objdump -d file`. You can use GDB's `disassemble` command to disassemble individual functions (see section [E.5 GDB](pintos_10.html#SEC151)).
+    The `objdump` (80x86) or `i386-elf-objdump` (SPARC) utility can disassemble entire user programs or object files. Invoke it as `objdump -d file`. You can use GDB's `disassemble` command to disassemble individual functions (see section [E.5 GDB](pintos_10.html#SEC151)).
 
-Why do many C include files not work in Pintos programs?
+- Why do many C include files not work in Pintos programs?
+- Can I use libfoo in my Pintos programs?
 
-Can I use libfoo in my Pintos programs?
+    The C library we provide is very limited. It does not include many of the features that are expected of a real operating system's C library. The C library must be built specifically for the operating system (and architecture), since it must make system calls for I/O and memory allocation. (Not all functions do, of course, but usually the library is compiled as a unit.)
 
-The C library we provide is very limited. It does not include many of the features that are expected of a real operating system's C library. The C library must be built specifically for the operating system (and architecture), since it must make system calls for I/O and memory allocation. (Not all functions do, of course, but usually the library is compiled as a unit.)
+    The chances are good that the library you want uses parts of the C library that Pintos doesn't implement. It will probably take at least some porting effort to make it work under Pintos. Notably, the Pintos user program C library does not have a `malloc()` implementation.
 
-The chances are good that the library you want uses parts of the C library that Pintos doesn't implement. It will probably take at least some porting effort to make it work under Pintos. Notably, the Pintos user program C library does not have a `malloc()` implementation.
+- How do I compile new user programs?
 
-How do I compile new user programs?
+    Modify src/examples/Makefile, then run `make`.
 
-Modify src/examples/Makefile, then run `make`.
+- Can I run user programs under a debugger?
 
-Can I run user programs under a debugger?
+    Yes, with some limitations. See section [E.5 GDB](pintos_10.md).
 
-Yes, with some limitations. See section [E.5 GDB](pintos_10.html#SEC151).
+- What's the difference between `tid_t` and `pid_t`?
 
-What's the difference between `tid_t` and `pid_t`?
+    A `tid_t` identifies a kernel thread, which may have a user process running in it (if created with `process_execute()`) or not (if created with `thread_create()`). It is a data type used only in the kernel.
 
-A `tid_t` identifies a kernel thread, which may have a user process running in it (if created with `process_execute()`) or not (if created with `thread_create()`). It is a data type used only in the kernel.
+    A `pid_t` identifies a user process. It is used by user processes and the kernel in the `exec` and `wait` system calls.
 
-A `pid_t` identifies a user process. It is used by user processes and the kernel in the `exec` and `wait` system calls.
-
-You can choose whatever suitable types you like for `tid_t` and `pid_t`. By default, they're both `int`. You can make them a one-to-one mapping, so that the same values in both identify the same process, or you can use a more complex mapping. It's up to you.
+    You can choose whatever suitable types you like for `tid_t` and `pid_t`. By default, they're both `int`. You can make them a one-to-one mapping, so that the same values in both identify the same process, or you can use a more complex mapping. It's up to you.
 
 * * *
 
 ### Argument Passing FAQ
 
-Isn't the top of stack in kernel virtual memory?
+- Isn't the top of stack in kernel virtual memory?
 
-The top of stack is at `PHYS_BASE`, typically 0xc0000000, which is also where kernel virtual memory starts. But before the processor pushes data on the stack, it decrements the stack pointer. Thus, the first (4-byte) value pushed on the stack will be at address 0xbffffffc.
+    The top of stack is at `PHYS_BASE`, typically 0xc0000000, which is also where kernel virtual memory starts. But before the processor pushes data on the stack, it decrements the stack pointer. Thus, the first (4-byte) value pushed on the stack will be at address 0xbffffffc.
 
-Is `PHYS_BASE` fixed?
+- Is `PHYS_BASE` fixed?
 
-No. You should be able to support `PHYS_BASE` values that are any multiple of 0x10000000 from 0x80000000 to 0xf0000000, simply via recompilation.
+    No. You should be able to support `PHYS_BASE` values that are any multiple of 0x10000000 from 0x80000000 to 0xf0000000, simply via recompilation.
 
 * * *
 
 ### System Calls FAQ
 
-Can I just cast a `struct file *` to get a file descriptor?
+- Can I just cast a `struct file *` to get a file descriptor?
+- Can I just cast a `struct thread *` to a `pid_t`?
 
-Can I just cast a `struct thread *` to a `pid_t`?
+    You will have to make these design decisions yourself. Most operating systems do distinguish between file descriptors (or pids) and the addresses of their kernel data structures. You might want to give some thought as to why they do so before committing yourself.
 
-You will have to make these design decisions yourself. Most operating systems do distinguish between file descriptors (or pids) and the addresses of their kernel data structures. You might want to give some thought as to why they do so before committing yourself.
+- Can I set a maximum number of open files per process?
 
-Can I set a maximum number of open files per process?
+    It is better not to set an arbitrary limit. You may impose a limit of 128 open files per process, if necessary.
 
-It is better not to set an arbitrary limit. You may impose a limit of 128 open files per process, if necessary.
+<a name="Removing_an_Open_File"></a>
+- What happens when an open file is removed?
 
-What happens when an open file is removed?
+    You should implement the standard Unix semantics for files. That is, when a file is removed any process which has a file descriptor for that file may continue to use that descriptor. This means that they can read and write from the file. The file will not have a name, and no other processes will be able to open it, but it will continue to exist until all file descriptors referring to the file are closed or the machine shuts down.
 
-You should implement the standard Unix semantics for files. That is, when a file is removed any process which has a file descriptor for that file may continue to use that descriptor. This means that they can read and write from the file. The file will not have a name, and no other processes will be able to open it, but it will continue to exist until all file descriptors referring to the file are closed or the machine shuts down.
+- How can I run user programs that need more than 4 kB stack space?
 
-How can I run user programs that need more than 4 kB stack space?
+    You may modify the stack setup code to allocate more than one page of stack space for each process. In the next project, you will implement a better solution.
 
-You may modify the stack setup code to allocate more than one page of stack space for each process. In the next project, you will implement a better solution.
+- What should happen if an `exec` fails midway through loading?
 
-What should happen if an `exec` fails midway through loading?
-
-`exec` should return -1 if the child process fails to load for any reason. This includes the case where the load fails part of the way through the process (e.g. where it runs out of memory in the `multi-oom` test). Therefore, the parent process cannot return from the `exec` system call until it is established whether the load was successful or not. The child must communicate this information to its parent using appropriate synchronization, such as a semaphore (see section [A.3.2 Semaphores](pintos_6.html#SEC102)), to ensure that the information is communicated without race conditions.
+    `exec` should return -1 if the child process fails to load for any reason. This includes the case where the load fails part of the way through the process (e.g. where it runs out of memory in the `multi-oom` test). Therefore, the parent process cannot return from the `exec` system call until it is established whether the load was successful or not. The child must communicate this information to its parent using appropriate synchronization, such as a semaphore (see section [A.3.2 Semaphores](pintos_6.md)), to ensure that the information is communicated without race conditions.
 
 * * *
 
+<a name=SEC50></a>
 80x86 Calling Convention
 ------------------------
 
-This section summarizes important points of the convention used for normal function calls on 32-bit 80x86 implementations of Unix. Some details are omitted for brevity. If you do want all the details, refer to \[ [SysV-i386](pintos_13.html#SysV-i386)\].
+This section summarizes important points of the convention used for normal function calls on 32-bit 80x86 implementations of Unix. Some details are omitted for brevity.
 
 The calling convention works like this:
 
 1.  The caller pushes each of the function's arguments on the stack one by one, normally using the `PUSH` assembly language instruction. Arguments are pushed in right-to-left order.
 
-The stack grows downward: each push decrements the stack pointer, then stores into the location it now points to, like the C expression \*--sp = value.
+    The stack grows downward: each push decrements the stack pointer, then stores into the location it now points to, like the C expression \*--sp = value.
 
 2.  The caller pushes the address of its next instruction (the _return address_) on the stack and jumps to the first instruction of the callee. A single 80x86 instruction, `CALL`, does both.
 
@@ -573,31 +558,36 @@ The stack grows downward: each push decrements the stack pointer, then stores in
 Consider a function `f()` that takes three `int` arguments. This diagram shows a sample stack frame as seen by the callee at the beginning of step 3 above, supposing that `f()` is invoked as `f(1, 2, 3)`. The initial stack address is arbitrary:
 
  
-
-                       +----------------+
-            0xbffffe7c |        3       |
-            0xbffffe78 |        2       |
-            0xbffffe74 |        1       |
+```
+                             +----------------+
+                  0xbffffe7c |        3       |
+                  0xbffffe78 |        2       |
+                  0xbffffe74 |        1       |
 stack pointer --> 0xbffffe70 | return address |
-                       +----------------+
-
+                             +----------------+
+```
 * * *
 
+<a name=SEC51></a>
 ### Program Startup Details
 
-The Pintos C library for user programs designates `_start()`, in lib/user/entry.c, as the entry point for user programs. This function is a wrapper around `main()` that calls `exit()` if `main()` returns:
+The Pintos C library for user programs designates `_start()`, in `lib/user/entry.c`, as the entry point for user programs. This function is a wrapper around `main()` that calls `exit()` if `main()` returns:
 
  
-
+```
 void
-\_start (int argc, char \*argv\[\])
+_start (int argc, char *argv[])
 {
 exit (main (argc, argv));
 }
+```
+The kernel must put the arguments for the initial function on the stack before it allows the user program to begin executing. The arguments are passed in the same way as the normal calling convention (see section [80x86 Calling Convention](#SEC50)).
 
-The kernel must put the arguments for the initial function on the stack before it allows the user program to begin executing. The arguments are passed in the same way as the normal calling convention (see section [80x86 Calling Convention](project2.html#SEC50)).
-
-Consider how to handle arguments for the following example command: /bin/ls -l foo bar. First, break the command into words: /bin/ls, \-l, foo, bar. Place the words at the top of the stack. Order doesn't matter, because they will be referenced through pointers.
+Consider how to handle arguments for the following example command:
+```
+/bin/ls -l foo bar
+```
+First, break the command into words: `/bin/ls`, `-l`, `foo`, `bar`. Place the words at the top of the stack. Order doesn't matter, because they will be referenced through pointers.
 
 Then, push the address of each string plus a null pointer sentinel, on the stack, in right-to-left order. These are the elements of `argv`. The null pointer sentinel ensures that `argv[argc]` is a null pointer, as required by the C standard. The order ensures that `argv[0]` is at the lowest virtual address. Word-aligned accesses are faster than unaligned accesses, so for best performance round the stack pointer down to a multiple of 4 before the first push.
 
@@ -605,145 +595,47 @@ Then, push `argv` (the address of `argv[0]`) and `argc`, in that order. Finally,
 
 The table below shows the state of the stack and the relevant registers right before the beginning of the user program, assuming `PHYS_BASE` is 0xc0000000:
 
-Address
+Address | Name | Data | Type
+:-------|:-----|:-----|:------
+`0xbffffffc` | `argv[3][...]` | "bar\\0"| `char[4]`
+`0xbffffff8` | `argv[2][...]` | "foo\\0" | `char[4]`
+`0xbffffff5` | `argv[1][...]` | "\-l\\0" | `char[3]`
+`0xbfffffed` | `argv[0][...]` | "/bin/ls\\0" | `char[8]`
+`0xbfffffec` | word-align     | 0            | `uint8_t`
+`0xbfffffe8` | `argv[4]` | 0 | `char *`
+`0xbfffffe4` | `argv[3]` | `0xbffffffc` | `char *`
+`0xbfffffe0` | `argv[2]` | `0xbffffff8` | `char *`
+`0xbfffffdc` | `argv[1]` | `0xbffffff5` | `char *`
+`0xbfffffd8` | `argv[0]` |`0xbfffffed` | `char *`
+`0xbfffffd4` | `argv` | `0xbfffffd8` | `char **`
+`0xbfffffd0` | `argc` | 4 | `int`
+`0xbfffffcc` | return address | 0 | `void (*) ()`
 
-Name
+In this example, the stack pointer would be initialized to `0xbfffffcc`.
 
-Data
-
-Type
-
-0xbffffffc
-
-`argv[3][...]`
-
-bar\\0
-
-`char[4]`
-
-0xbffffff8
-
-`argv[2][...]`
-
-foo\\0
-
-`char[4]`
-
-0xbffffff5
-
-`argv[1][...]`
-
-\-l\\0
-
-`char[3]`
-
-0xbfffffed
-
-`argv[0][...]`
-
-/bin/ls\\0
-
-`char[8]`
-
-0xbfffffec
-
-word-align
-
-0
-
-`uint8_t`
-
-0xbfffffe8
-
-`argv[4]`
-
-0
-
-`char *`
-
-0xbfffffe4
-
-`argv[3]`
-
-0xbffffffc
-
-`char *`
-
-0xbfffffe0
-
-`argv[2]`
-
-0xbffffff8
-
-`char *`
-
-0xbfffffdc
-
-`argv[1]`
-
-0xbffffff5
-
-`char *`
-
-0xbfffffd8
-
-`argv[0]`
-
-0xbfffffed
-
-`char *`
-
-0xbfffffd4
-
-`argv`
-
-0xbfffffd8
-
-`char **`
-
-0xbfffffd0
-
-`argc`
-
-4
-
-`int`
-
-0xbfffffcc
-
-return address
-
-0
-
-`void (*) ()`
-
-In this example, the stack pointer would be initialized to 0xbfffffcc.
-
-As shown above, your code should start the stack at the very top of the user virtual address space, in the page just below virtual address `PHYS_BASE` (defined in threads/vaddr.h).
+As shown above, your code should start the stack at the very top of the user virtual address space, in the page just below virtual address `PHYS_BASE` (defined in `threads/vaddr.h`).
 
 You may find the non-standard `hex_dump()` function, declared in <stdio.h>, useful for debugging your argument passing code. Here's what it would show in the above example:
 
  
-
+```
 bfffffc0                                      00 00 00 00 |            ....|
 bfffffd0  04 00 00 00 d8 ff ff bf-ed ff ff bf f5 ff ff bf |................|
 bfffffe0  f8 ff ff bf fc ff ff bf-00 00 00 00 00 2f 62 69 |............./bi|
 bffffff0  6e 2f 6c 73 00 2d 6c 00-66 6f 6f 00 62 61 72 00 |n/ls.-l.foo.bar.|
-
+```
 * * *
 
 ### System Call Details
 
-The first project already dealt with one way that the operating system can regain control from a user program: interrupts from timers and I/O devices. These are "external" interrupts, because they are caused by entities outside the CPU (see section [A.4.3 External Interrupt Handling](pintos_7.html#SEC120)).
+The first project already dealt with one way that the operating system can regain control from a user program: interrupts from timers and I/O devices. These are "external" interrupts, because they are caused by entities outside the CPU (see section [A.4.3 External Interrupt Handling](pintos_7.md)).
 
-The operating system also deals with software exceptions, which are events that occur in program code (see section [A.4.2 Internal Interrupt Handling](pintos_7.html#SEC119)). These can be errors such as a page fault or division by zero. Exceptions are also the means by which a user program can request services ("system calls") from the operating system.
+The operating system also deals with software exceptions, which are events that occur in program code (see section [A.4.2 Internal Interrupt Handling](pintos_7.md)). These can be errors such as a page fault or division by zero. Exceptions are also the means by which a user program can request services ("system calls") from the operating system.
 
-In the 80x86 architecture, the int instruction is the most commonly used means for invoking system calls. This instruction is handled in the same way as other software exceptions. In Pintos, user programs invoke int $0x30 to make a system call. The system call number and any additional arguments are expected to be pushed on the stack in the normal fashion before invoking the interrupt (see section [80x86 Calling Convention](project2.html#SEC50)).
+In the 80x86 architecture, the int instruction is the most commonly used means for invoking system calls. This instruction is handled in the same way as other software exceptions. In Pintos, user programs invoke int $0x30 to make a system call. The system call number and any additional arguments are expected to be pushed on the stack in the normal fashion before invoking the interrupt (see section [80x86 Calling Convention](#SEC50)).
 
-Thus, when the system call handler `syscall_handler()` gets control, the system call number is in the 32-bit word at the caller's stack pointer, the first argument is in the 32-bit word at the next higher address, and so on. The caller's stack pointer is accessible to `syscall_handler()` as the esp member of the `struct intr_frame` passed to it. (`struct intr_frame` is on the kernel stack.)
+Thus, when the system call handler `syscall_handler()` gets control, the system call number is in the 32-bit word at the caller's stack pointer, the first argument is in the 32-bit word at the next higher address, and so on. The caller's stack pointer is accessible to `syscall_handler()` as the `esp` member of the `struct intr_frame` passed to it. (`struct intr_frame` is on the kernel stack.)
 
 The 80x86 convention for function return values is to place them in the `EAX` register. System calls that return a value can do so by modifying the eax member of `struct intr_frame`.
 
 You should try to avoid writing large amounts of repetitive code for implementing system calls. Each system call argument, whether an integer or a pointer, takes up 4 bytes on the stack. You should be able to take advantage of this to avoid writing much near-identical code for retrieving each system call's arguments from the stack.
-
-* * *

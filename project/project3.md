@@ -71,7 +71,8 @@ The 80x86 doesn't provide any way to directly access memory at a physical addres
 Pintos provides functions for translating between physical addresses and kernel virtual addresses. See section [A.6 Virtual Addresses](pintos_7.html#SEC124), for details.
 
 * * *
-
+*
+<a name=SEC59></a>
 #### Page Tables
 
 In Pintos, a _page table_ is a data structure that the CPU uses to translate a virtual address to a physical address, that is, from a page to a frame. The page table format is dictated by the 80x86 architecture. Pintos provides page table management code in pagedir.c (see section [A.7 Page Table](pintos_7.html#SEC125)).
