@@ -780,13 +780,13 @@ A.6 Virtual Addresses
 A 32-bit virtual address can be divided into a 20-bit _page number_ and a 12-bit _page offset_ (or just _offset_), like this:
 
  
-
+```
                31               12 11        0
               +-------------------+-----------+
               |    Page Number    |   Offset  |
               +-------------------+-----------+
                        Virtual Address
-
+```
 Header threads/vaddr.h defines these functions and macros for working with virtual addresses:
 
 Macro: **PGSHIFT**
@@ -943,7 +943,7 @@ Translation of a virtual address into a physical address follows the three-step 
 3.  The least-significant 12 bits of the virtual address (bits 0...11) are added to the data page's physical base address, yielding the final physical address.
 
  
-
+```
  31                  22 21                  12 11                   0
 +----------------------+----------------------+----------------------+
 | Page Directory Index |   Page Table Index   |    Page Offset       |
@@ -971,7 +971,7 @@ Translation of a virtual address into a physical address follows the three-step 
        1|\_\_\_\_\_\_\_\_\_\_\_\_|  |   1|\_\_\_\_\_\_\_\_\_\_\_\_|  |     |\_\_\_\_\_\_\_\_\_\_\_\_|
        0|\_\_\_\_\_\_\_\_\_\_\_\_|  \\\_\_\\0|\_\_\_\_\_\_\_\_\_\_\_\_|  \\\_\_\_\_\\|\_\_\_\_\_\_\_\_\_\_\_\_|
                            /                      /
-
+```
 Pintos provides some macros and functions that are useful for working with raw page tables:
 
 Macro: **PTSHIFT**
