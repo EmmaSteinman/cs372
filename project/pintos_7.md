@@ -3,7 +3,7 @@ A. Pintos Reference Guide
 
 This chapter is a reference for the Pintos code. The reference guide does not cover all of the code in Pintos, but it does cover those pieces that students most often find troublesome. You may find that you want to read each part of the reference guide as you work on the project where it becomes important.
 
-We recommend using "tags/ctags/exuberant-ctags" to follow along with references to function and variable names (see section [F.1 Tags](pintos_12.md)).
+We recommend using cscope to follow along with references to function and variable names.
 
 * * *
 
@@ -943,7 +943,7 @@ Translation of a virtual address into a physical address follows the three-step 
 3.  The least-significant 12 bits of the virtual address (bits 0...11) are added to the data page's physical base address, yielding the final physical address.
 
  
-```
+
  31                  22 21                  12 11                   0
 +----------------------+----------------------+----------------------+
 | Page Directory Index |   Page Table Index   |    Page Offset       |
@@ -971,7 +971,7 @@ Translation of a virtual address into a physical address follows the three-step 
        1|\_\_\_\_\_\_\_\_\_\_\_\_|  |   1|\_\_\_\_\_\_\_\_\_\_\_\_|  |     |\_\_\_\_\_\_\_\_\_\_\_\_|
        0|\_\_\_\_\_\_\_\_\_\_\_\_|  \\\_\_\\0|\_\_\_\_\_\_\_\_\_\_\_\_|  \\\_\_\_\_\\|\_\_\_\_\_\_\_\_\_\_\_\_|
                            /                      /
-```
+
 Pintos provides some macros and functions that are useful for working with raw page tables:
 
 Macro: **PTSHIFT**
