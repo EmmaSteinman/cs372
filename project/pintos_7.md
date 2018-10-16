@@ -181,7 +181,7 @@ A "list element" used to put the thread into doubly linked lists, either `ready_
 
 Member of `struct thread`: uint32\_t \***pagedir**
 
-Only present in project 2 and later. See section [5.1.2.3 Page Tables](pintos_5.md).
+Only present in project 2 and later. See section [5.1.2.3 Page Tables](project3.md).
 
 Member of `struct thread`: unsigned **magic**
 
@@ -696,7 +696,7 @@ Pintos contains two memory allocators, one that allocates memory in units of a p
 
 The page allocator declared in threads/palloc.h allocates memory in units of a page. It is most often used to allocate memory one page at a time, but it can also allocate multiple contiguous pages at once.
 
-The page allocator divides the memory it allocates into two pools, called the kernel and user pools. By default, each pool gets half of system memory above 1 MB, but the division can be changed with the \-ul kernel command line option (see [Why PAL\_USER?](pintos_5.md)). An allocation request draws from one pool or the other. If one pool becomes empty, the other may still have free pages. The user pool should be used for allocating memory for user processes and the kernel pool for all other allocations. This will only become important starting with project 3. Until then, all allocations should be made from the kernel pool.
+The page allocator divides the memory it allocates into two pools, called the kernel and user pools. By default, each pool gets half of system memory above 1 MB, but the division can be changed with the \-ul kernel command line option (see [Why PAL\_USER?](project3.md)). An allocation request draws from one pool or the other. If one pool becomes empty, the other may still have free pages. The user pool should be used for allocating memory for user processes and the kernel pool for all other allocations. This will only become important starting with project 3. Until then, all allocations should be made from the kernel pool.
 
 Each pool's usage is tracked with a bitmap, one bit per page in the pool. A request to allocate n pages scans the bitmap for n consecutive bits set to false, indicating that those pages are free, and then sets those bits to true to mark them as used. This is a "first fit" allocation strategy.
 
@@ -908,7 +908,7 @@ This function has no effect if page is not mapped.
 
 Proper interpretation of these bits requires understanding of _aliases_, that is, two (or more) pages that refer to the same frame. When an aliased frame is accessed, the accessed and dirty bits are updated in only one page table entry (the one for the page used for access). The accessed and dirty bits for the other aliases are not updated.
 
-See section [5.1.5.1 Accessed and Dirty Bits](pintos_5.md), on applying these bits in implementing page replacement algorithms.
+See section [5.1.5.1 Accessed and Dirty Bits](project3.md), on applying these bits in implementing page replacement algorithms.
 
 Function: bool **pagedir\_is\_dirty** (uint32\_t \*pd, const void \*page)
 
@@ -1012,7 +1012,7 @@ Returns the page offset for virtual address va. This function is defined in thre
 
 #### A.7.4.2 Page Table Entry Format
 
-You do not need to understand the PTE format to do the Pintos projects, unless you wish to incorporate the page table into your supplemental page table (see section [5.1.4 Managing the Supplemental Page Table](pintos_5.md)).
+You do not need to understand the PTE format to do the Pintos projects, unless you wish to incorporate the page table into your supplemental page table (see section [5.1.4 Managing the Supplemental Page Table](project3.md)).
 
 The actual format of a page table entry is summarized below. For complete information, refer to section 3.7, "Page Translation Using 32-Bit Physical Addressing," in \[ [IA32-v3a](pintos_14.md)\].
 
@@ -1065,7 +1065,7 @@ Returns a page table entry that points to page, which should be a kernel virtual
 
 Function: uint32\_t **pte\_create\_user** (uint32\_t \*page, bool writable)
 
-Returns a page table entry that points to page, which should be the kernel virtual address of a frame in the user pool (see [Why PAL\_USER?](pintos_5.md)). The PTE's present bit will be set and it will be marked to allow user-mode access. If writable is true, the PTE will also be marked read/write; otherwise, it will be read-only.
+Returns a page table entry that points to page, which should be the kernel virtual address of a frame in the user pool (see [Why PAL\_USER?](project3.md)). The PTE's present bit will be set and it will be marked to allow user-mode access. If writable is true, the PTE will also be marked read/write; otherwise, it will be read-only.
 
 Function: void \***pte\_get\_page** (uint32\_t pte)
 
