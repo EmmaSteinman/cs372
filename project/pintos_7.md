@@ -884,7 +884,7 @@ Adds to pd a mapping from user page upage to the frame identified by kernel virt
 
 User page upage must not already be mapped in pd.
 
-Kernel page kpage should be a kernel virtual address obtained from the user pool with `palloc_get_page(PAL_USER)` (see [Why PAL\_USER?](pintos_5.html#Why PAL_USER?)).
+Kernel page kpage should be a kernel virtual address obtained from the user pool with `palloc_get_page(PAL_USER)`.
 
 Returns true if successful, false on failure. Failure will occur if additional memory required for the page table cannot be obtained.
 
@@ -908,7 +908,7 @@ This function has no effect if page is not mapped.
 
 Proper interpretation of these bits requires understanding of _aliases_, that is, two (or more) pages that refer to the same frame. When an aliased frame is accessed, the accessed and dirty bits are updated in only one page table entry (the one for the page used for access). The accessed and dirty bits for the other aliases are not updated.
 
-See section [5.1.5.1 Accessed and Dirty Bits](pintos_5.html#SEC74), on applying these bits in implementing page replacement algorithms.
+See section [5.1.5.1 Accessed and Dirty Bits](pintos_5.md), on applying these bits in implementing page replacement algorithms.
 
 Function: bool **pagedir\_is\_dirty** (uint32\_t \*pd, const void \*page)
 
@@ -943,7 +943,7 @@ Translation of a virtual address into a physical address follows the three-step 
 3.  The least-significant 12 bits of the virtual address (bits 0...11) are added to the data page's physical base address, yielding the final physical address.
 
  
-
+```
  31                  22 21                  12 11                   0
 +----------------------+----------------------+----------------------+
 | Page Directory Index |   Page Table Index   |    Page Offset       |
@@ -971,7 +971,7 @@ Translation of a virtual address into a physical address follows the three-step 
        1|\_\_\_\_\_\_\_\_\_\_\_\_|  |   1|\_\_\_\_\_\_\_\_\_\_\_\_|  |     |\_\_\_\_\_\_\_\_\_\_\_\_|
        0|\_\_\_\_\_\_\_\_\_\_\_\_|  \\\_\_\\0|\_\_\_\_\_\_\_\_\_\_\_\_|  \\\_\_\_\_\\|\_\_\_\_\_\_\_\_\_\_\_\_|
                            /                      /
-
+```
 Pintos provides some macros and functions that are useful for working with raw page tables:
 
 Macro: **PTSHIFT**
@@ -1012,17 +1012,17 @@ Returns the page offset for virtual address va. This function is defined in thre
 
 #### A.7.4.2 Page Table Entry Format
 
-You do not need to understand the PTE format to do the Pintos projects, unless you wish to incorporate the page table into your supplemental page table (see section [5.1.4 Managing the Supplemental Page Table](pintos_5.html#SEC72)).
+You do not need to understand the PTE format to do the Pintos projects, unless you wish to incorporate the page table into your supplemental page table (see section [5.1.4 Managing the Supplemental Page Table](pintos_5.md)).
 
-The actual format of a page table entry is summarized below. For complete information, refer to section 3.7, "Page Translation Using 32-Bit Physical Addressing," in \[ [IA32-v3a](pintos_14.html#IA32-v3a)\].
+The actual format of a page table entry is summarized below. For complete information, refer to section 3.7, "Page Translation Using 32-Bit Physical Addressing," in \[ [IA32-v3a](pintos_14.md)\].
 
  
-
+```
  31                                   12 11 9      6 5     2 1 0
 +---------------------------------------+----+----+-+-+---+-+-+-+
 |           Physical Address            | AVL|    |D|A|   |U|W|P|
 +---------------------------------------+----+----+-+-+---+-+-+-+
-
+```
 Some more information on each bit is given below. The names are threads/pte.h macros that represent the bits' values:
 
 Macro: **PTE\_P**
@@ -1055,7 +1055,7 @@ Macro: **PTE\_ADDR**
 
 Bits 12...31, the top 20 bits of the physical address of a frame. The low 12 bits of the frame's address are always 0.
 
-Other bits are either reserved or uninteresting in a Pintos context and should be set to@tie{}0.
+Other bits are either reserved or uninteresting in a Pintos context and should be set to 0.
 
 Header threads/pte.h defines three functions for working with page table entries:
 
@@ -1065,7 +1065,7 @@ Returns a page table entry that points to page, which should be a kernel virtual
 
 Function: uint32\_t **pte\_create\_user** (uint32\_t \*page, bool writable)
 
-Returns a page table entry that points to page, which should be the kernel virtual address of a frame in the user pool (see [Why PAL\_USER?](pintos_5.html#Why PAL_USER?)). The PTE's present bit will be set and it will be marked to allow user-mode access. If writable is true, the PTE will also be marked read/write; otherwise, it will be read-only.
+Returns a page table entry that points to page, which should be the kernel virtual address of a frame in the user pool (see [Why PAL\_USER?](pintos_5.md)). The PTE's present bit will be set and it will be marked to allow user-mode access. If writable is true, the PTE will also be marked read/write; otherwise, it will be read-only.
 
 Function: void \***pte\_get\_page** (uint32\_t pte)
 
