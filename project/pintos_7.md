@@ -1233,16 +1233,16 @@ Calls action once for each element in hash, in arbitrary order. action must not 
 The second interface is based on an "iterator" data type. Idiomatically, iterators are used as follows:
 
  
+```
+struct hash_iterator i;
 
-struct hash\_iterator i;
-
-hash\_first (&i, h);
-while (hash\_next (&i))
+hash_first (&i, h);
+while (hash_next (&i))
   {
-    struct foo \*f = hash\_entry (hash\_cur (&i), struct foo, elem);
+    struct foo *f = hash_entry (hash_cur (&i), struct foo, elem);
     ...do something with _f_...
   }
-
+```
 Type: **struct hash\_iterator**
 
 Represents a position within a hash table. Calling any function that may modify a hash table, such as `hash_insert()` or `hash_delete()`, invalidates all iterators within that hash table.
@@ -1268,73 +1268,73 @@ Returns the value most recently returned by `hash_next()` for iterator. Yields u
 Suppose you have a structure, called `struct page`, that you want to put into a hash table. First, define `struct page` to include a `struct hash_elem` member:
 
  
-
+```
 struct page
   {
-    struct hash\_elem hash\_elem; /\* Hash table element. \*/
-    void \*addr;                 /\* Virtual address. \*/
-    /\* ...other members... \*/
+    struct hash_elem hash_elem; /* Hash table element. */
+    void *addr;                 /* Virtual address. */
+    /* ...other members... */
   };
-
+```
 We write a hash function and a comparison function using addr as the key. A pointer can be hashed based on its bytes, and the < operator works fine for comparing pointers:
 
  
-
-/\* Returns a hash value for page p. \*/
+```
+/* Returns a hash value for page p. */
 unsigned
-page\_hash (const struct hash\_elem \*p\_, void \*aux UNUSED)
+page_hash (const struct hash_elem *p_, void *aux UNUSED)
 {
-  const struct page \*p = hash\_entry (p\_, struct page, hash\_elem);
-  return hash\_bytes (&p->addr, sizeof p->addr);
+  const struct page *p = hash_entry (p_, struct page, hash_elem);
+  return hash_bytes (&p->addr, sizeof p->addr);
 }
 
-/\* Returns true if page a precedes page b. \*/
+/* Returns true if page a precedes page b. */
 bool
-page\_less (const struct hash\_elem \*a\_, const struct hash\_elem \*b\_,
-           void \*aux UNUSED)
+page_less (const struct hash_elem *a_, const struct hash_elem *b_,
+           void *aux UNUSED)
 {
-  const struct page \*a = hash\_entry (a\_, struct page, hash\_elem);
-  const struct page \*b = hash\_entry (b\_, struct page, hash\_elem);
+  const struct page *a = hash_entry (a_, struct page, hash_elem);
+  const struct page *b = hash_entry (b_, struct page, hash_elem);
 
   return a->addr < b->addr;
 }
-
-(The use of `UNUSED` in these functions' prototypes suppresses a warning that aux is unused. See section [E.3 Function and Parameter Attributes](pintos_11.html#SEC158), for information about `UNUSED`. See section [A.8.6 Auxiliary Data](pintos_7.html#SEC139), for an explanation of aux.)
+```
+(The use of `UNUSED` in these functions' prototypes suppresses a warning that aux is unused. See section [E.3 Function and Parameter Attributes](pintos_11.md), for information about `UNUSED`. See section [A.8.6 Auxiliary Data](#SEC139), for an explanation of aux.)
 
 Then, we can create a hash table like this:
 
  
-
+```
 struct hash pages;
 
-hash\_init (&pages, page\_hash, page\_less, NULL);
-
+hash_init (&pages, page_hash, page_less, NULL);
+```
 Now we can manipulate the hash table we've created. If `p` is a pointer to a `struct page`, we can insert it into the hash table with:
 
  
-
-hash\_insert (&pages, &p->hash\_elem);
-
+```
+hash_insert (&pages, &p->hash_elem);
+```
 If there's a chance that pages might already contain a page with the same addr, then we should check `hash_insert()`'s return value.
 
 To search for an element in the hash table, use `hash_find()`. This takes a little setup, because `hash_find()` takes an element to compare against. Here's a function that will find and return a page based on a virtual address, assuming that pages is defined at file scope:
 
  
-
-/\* Returns the page containing the given virtual address,
-   or a null pointer if no such page exists. \*/
-struct page \*
-page\_lookup (const void \*address)
+```
+/* Returns the page containing the given virtual address,
+   or a null pointer if no such page exists. */
+struct page *
+page_lookup (const void *address)
 {
   struct page p;
-  struct hash\_elem \*e;
+  struct hash_elem *e;
 
   p.addr = address;
-  e = hash\_find (&pages, &p.hash\_elem);
-  return e != NULL ? hash\_entry (e, struct page, hash\_elem) : NULL;
+  e = hash_find (&pages, &p.hash_elem);
+  return e != NULL ? hash_entry (e, struct page, hash_elem) : NULL;
 }
-
-`struct page` is allocated as a local variable here on the assumption that it is fairly small. Large structures should not be allocated as local variables. See section [A.2.1 `struct thread`](pintos_7.html#SEC107), for more information.
+```
+`struct page` is allocated as a local variable here on the assumption that it is fairly small. Large structures should not be allocated as local variables.
 
 A similar function could delete a page by address using `hash_delete()`.
 
