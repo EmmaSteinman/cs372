@@ -19,7 +19,7 @@ Project    |   Weight  |   Due
 [Lab 2: User Programs](project2.md) | 8% | 10/17 11:59 pm
 [Lab 3: Virtual Memory](project3.md) | 12% | 11/16 11:59 pm
 [Lab 4: File Systems](project4.md) | 12% | 12/14 11:59 pm
-[Lab 4 Indiv.: File System Checker](project4-individual.md)  | 12%  |  12/14 11:59 pm
+[Lab 4 Indiv.: File System Checker](project4_individual.md)  | 12%  |  12/14 11:59 pm
 
 * * *
 
