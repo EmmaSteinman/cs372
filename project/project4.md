@@ -55,9 +55,9 @@ To make your job easier, we suggest implementing the parts of this project in th
 
 1.  Buffer cache, if doing the extra credit (see section [5.3.4 Buffer Cache](#BufferCache)). Implement the buffer cache and integrate it into the existing file system. At this point all the tests from project 2 (and project 3, if you're building on it) should still pass.
 
-2.  Extensible files (see section [5.3.2 Indexed and Extensible Files](#Subdirectories)). After this step, your project should pass the file growth tests.
+2.  Extensible files (see section [5.3.2 Indexed and Extensible Files](#IndexFiles)). After this step, your project should pass the file growth tests.
 
-3.  Subdirectories (see section [5.3.3 Subdirectories](#IndexFiles)). Afterward, your project should pass the directory tests.
+3.  Subdirectories (see section [5.3.3 Subdirectories](#Subdirectories)). Afterward, your project should pass the directory tests.
 
 4.  Remaining miscellaneous items.
 
@@ -71,7 +71,8 @@ You should think about synchronization throughout.
 
 Before you turn in your project, you must copy [the project 4 design document template](lab4doc.md) into your source tree under the name `pintos/src/filesys/DESIGNDOC.md` and fill it in. We recommend that you read the design document template before you start working on the project.
 
-### 1\. Indexed and Extensible Files<a name="IndexFiles"></a>
+<a name="IndexFiles"></a>
+### 1\. Indexed and Extensible Files
 
 The basic file system allocates files as a single extent (start_block, length), making it vulnerable to external fragmentation, that is, it is possible that an n\-block file cannot be allocated even though n blocks are free. Eliminate this problem by modifying the on-disk inode structure. In practice, this probably means using an index structure with direct, indirect, and doubly indirect blocks. You are welcome to choose a different scheme as long as you explain the rationale for it in your design documentation, and as long as it does not suffer from external fragmentation.
 
@@ -89,7 +90,8 @@ User programs are allowed to seek beyond the current end-of-file (EOF). The seek
 
 Writing far beyond EOF can cause many blocks to be entirely zero. Some file systems allocate and write real data blocks for these implicitly zeroed blocks. Other file systems do not allocate these blocks at all until they are explicitly written. The latter file systems are said to support "sparse files." You may adopt either allocation strategy in your file system.
 
-### 2\. Subdirectories<a name="Subdirectories"></a>
+<a name="Subdirectories"></a>
+### 2\. Subdirectories
 
 **Exercise 4.2.1**
 
@@ -143,7 +145,8 @@ We have provided `ls` and `mkdir` user programs, which are straightforward once 
 
 The `pintos` extract and append commands should now accept full path names, assuming that the directories used in the paths have already been created. This should not require any significant extra effort on your part.  
 
-### 3\. Buffer Cache<a name="BufferCache"></a>
+<a name="BufferCache"></a>
+### 3\. Buffer Cache
 
 Modify the file system to keep a cache of file blocks. When a request is made to read or write a block, check to see if it is in the cache, and if so, use the cached data without going to disk. Otherwise, fetch the block from disk into the cache, evicting an older entry if necessary. You are limited to a cache **no greater than 64 sectors** in size.
 
